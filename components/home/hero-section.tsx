@@ -1,4 +1,7 @@
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
 
 // ─────────────────────────────────────────────
 // DUMMY DATA
@@ -9,7 +12,6 @@ const slides = [
     badge: "KEGIATAN",
     title: "Santunan Anak Yatim",
     detail: "12 Okt  •  Masjid Al-Ikhlas, Mulyoarjo",
-    // gradient simulates a charity-photo placeholder
     bg: "from-emerald-800 via-emerald-600 to-teal-700",
   },
   {
@@ -34,10 +36,8 @@ const stats = [
   { label: "Perolehan Tahun Ini", value: "Rp 18.750.000", dark: true, badge: true },
 ];
 
-const navLinks = ["Beranda", "Laporan", "Kegiatan", "Profil"];
-
 // ─────────────────────────────────────────────
-// ICONS (inline SVG via lucide-style)
+// ICONS (inline SVG)
 // ─────────────────────────────────────────────
 const ArrowIcon = ({ size = 20, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -65,11 +65,11 @@ const MapPinIcon = ({ size = 14, className = "" }) => (
 // ─────────────────────────────────────────────
 // COMPONENT
 // ─────────────────────────────────────────────
-export default function LazisNUHero() {
+export function HeroSection() {
   const [current, setCurrent] = useState(0);
   const [fade, setFade] = useState(true);
 
-  const goTo = useCallback((idx) => {
+  const goTo = useCallback((idx: number) => {
     setFade(false);
     setTimeout(() => {
       setCurrent(idx);
@@ -77,7 +77,6 @@ export default function LazisNUHero() {
     }, 300);
   }, []);
 
-  // auto-play every 4 s
   useEffect(() => {
     const t = setInterval(() => {
       goTo((current + 1) % slides.length);
@@ -88,47 +87,17 @@ export default function LazisNUHero() {
   const slide = slides[current];
 
   return (
-    <div className="min-h-screen bg-white font-sans flex flex-col">
-      {/* ══════ A. STICKY NAV ══════ */}
-      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          {/* Logo inline */}
-          <a href="#" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center shadow-sm">
-              <span className="text-white font-bold text-sm leading-none">L</span>
-            </div>
-            <span className="text-sm font-bold text-emerald-700 tracking-tight">
-              LazisNU <span className="text-gray-500 font-medium">Mulyoarjo</span>
-            </span>
-          </a>
+    <div className="bg-white font-sans flex flex-col">
+      <main className="max-w-6xl mx-auto w-full px-4 py-8 flex flex-col gap-6">
 
-          {/* Menu links */}
-          <div className="flex items-center gap-6">
-            {navLinks.map((link) => (
-              <a
-                key={link}
-                href="#"
-                className={`text-sm font-semibold relative transition-colors ${
-                  link === "Beranda"
-                    ? "text-emerald-700"
-                    : "text-gray-500 hover:text-emerald-600"
-                }`}
-              >
-                {link}
-                {link === "Beranda" && (
-                  <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-emerald-600 rounded-full" />
-                )}
-              </a>
-            ))}
-          </div>
-        </div>
-      </nav>
-
-      {/* ══════ MAIN CONTENT ══════ */}
-      <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8 flex flex-col gap-6">
-
-        {/* ── B. HERO TYPOGRAPHY (above image) ── */}
-        <div className="flex flex-col gap-1">
+        {/* ── A. HERO TYPOGRAPHY ── */}
+        <motion.div
+          className="flex flex-col gap-1"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight tracking-tight uppercase">
             Transparansi Pengelolaan
             <br />
@@ -137,20 +106,22 @@ export default function LazisNUHero() {
           <p className="text-sm sm:text-base text-gray-400 font-medium mt-1">
             Untuk Kesejahteraan Bersama
           </p>
-        </div>
-
-        {/* ── C. SLIDESHOW with glassmorphism overlay ── */}
-        <div className="relative w-full rounded-3xl overflow-hidden" style={{ minHeight: "280px" }}>
-          {/* Background gradient (simulated photo) */}
+        </motion.div>
+        <motion.div
+          className="relative w-full rounded-3xl overflow-hidden"
+          style={{ minHeight: "280px" }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.15, duration: 0.5 }}
+        >
           <div
             className={`absolute inset-0 bg-gradient-to-br ${slide.bg} transition-opacity duration-300`}
             style={{ opacity: fade ? 1 : 0 }}
           >
-            {/* Decorative shapes to give depth */}
             <div className="absolute -top-10 -right-10 w-48 h-48 bg-white/5 rounded-full blur-xl" />
             <div className="absolute bottom-20 left-10 w-32 h-32 bg-white/10 rounded-full blur-lg" />
             <div className="absolute top-10 left-1/3 w-24 h-24 bg-white/5 rounded-full blur-md" />
-            {/* Geometric pattern overlay for visual interest */}
             <svg className="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 800 400" preserveAspectRatio="none">
               <defs>
                 <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -177,7 +148,6 @@ export default function LazisNUHero() {
                 border: "1px solid rgba(255,255,255,0.25)",
               }}
             >
-              {/* Badge */}
               <span
                 className="self-start text-[11px] font-bold tracking-widest uppercase text-white rounded-full px-3 py-0.5"
                 style={{ background: "rgba(255,255,255,0.2)" }}
@@ -185,7 +155,6 @@ export default function LazisNUHero() {
                 {slide.badge}
               </span>
 
-              {/* Title */}
               <h2
                 className="text-base sm:text-lg font-bold text-white leading-snug"
                 style={{ opacity: fade ? 1 : 0, transition: "opacity 0.3s" }}
@@ -193,7 +162,6 @@ export default function LazisNUHero() {
                 {slide.title}
               </h2>
 
-              {/* Time & Location */}
               <div className="flex items-center gap-3 text-white/80 text-[12px] font-medium">
                 <span className="flex items-center gap-1">
                   <CalendarIcon size={13} />
@@ -207,7 +175,6 @@ export default function LazisNUHero() {
               </div>
             </div>
 
-            {/* Arrow button */}
             <button className="shrink-0 w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow">
               <ArrowIcon size={18} className="text-emerald-700" />
             </button>
@@ -225,27 +192,34 @@ export default function LazisNUHero() {
               />
             ))}
           </div>
-        </div>
-
-        {/* ── D. STATS BENTO GRID ── */}
-        <div className="grid grid-cols-3 gap-3 sm:gap-4">
+        </motion.div>
+        {/* 
+          Mobile:  2 kolom → card[0] & card[1] sejajar di baris pertama,
+                               card[2] (Perolehan Tahun Ini) full-width di baris kedua.
+          Desktop (sm+): 3 kolom sejajar seperti sebelumnya.
+        */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
           {stats.map((s, i) => (
-            <div
+            <motion.div
               key={i}
               className={`rounded-2xl p-4 sm:p-5 flex flex-col gap-1.5 relative overflow-hidden ${
+                i === 2 ? "col-span-2 sm:col-span-1" : ""
+              } ${
                 s.dark
                   ? "bg-emerald-700 text-white"
                   : "bg-emerald-50 text-gray-900"
               }`}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.15, duration: 0.5 }}
             >
-              {/* subtle decorative circle */}
               <div
                 className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full opacity-10 ${
                   s.dark ? "bg-white" : "bg-emerald-600"
                 }`}
               />
 
-              {/* Badge row */}
               {s.badge && (
                 <span
                   className={`self-start text-[9px] font-bold tracking-wider uppercase border rounded-full px-2 py-0.5 ${
@@ -258,7 +232,6 @@ export default function LazisNUHero() {
                 </span>
               )}
 
-              {/* Value */}
               <p
                 className={`text-xl sm:text-2xl font-extrabold leading-tight relative z-10 ${
                   s.dark ? "text-white" : "text-gray-900"
@@ -267,7 +240,6 @@ export default function LazisNUHero() {
                 {s.value}
               </p>
 
-              {/* Label */}
               <p
                 className={`text-[11px] font-semibold uppercase tracking-wide relative z-10 ${
                   s.dark ? "text-emerald-200" : "text-gray-500"
@@ -275,7 +247,7 @@ export default function LazisNUHero() {
               >
                 {s.label}
               </p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </main>

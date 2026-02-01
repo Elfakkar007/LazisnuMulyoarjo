@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image"; // Import Image untuk logo custom
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -11,23 +12,51 @@ const navItems = [
   { href: "/profil", label: "Profil" },
 ];
 
-export function DesktopNav() {
+interface DesktopNavProps {
+  logoSrc?: string; // Opsional: URL gambar logo
+  brandName?: string; // Default: LazisNU
+  branchName?: string; // Default: Mulyoarjo
+}
+
+export function DesktopNav({ 
+  logoSrc, 
+  brandName = "LazisNU", 
+  branchName = "Mulyoarjo" 
+}: DesktopNavProps) {
   const pathname = usePathname();
 
   return (
     <nav className="hidden md:block sticky top-0 z-50 bg-white border-b border-gray-200">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-lg">L</span>
+          
+          {/* BAGIAN LOGO & JUDUL (Dibuat Custom & Inline) */}
+          <Link href="/" className="flex items-center gap-3 group">
+            {/* Logic: Jika ada logoSrc pakai Image, jika tidak pakai placeholder "L" */}
+            {logoSrc ? (
+              <div className="relative w-10 h-10 overflow-hidden rounded-full">
+                <Image 
+                  src={logoSrc} 
+                  alt="Logo" 
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center group-hover:bg-emerald-700 transition-colors">
+                <span className="text-white font-bold text-lg">{brandName.charAt(0)}</span>
+              </div>
+            )}
+            
+            {/* Judul Inline: Flex row memastikan satu baris */}
+            <div className="flex items-center gap-1.5 text-lg">
+              <span className="font-bold text-emerald-700">{brandName}</span>
+              {/* Branch name dibuat font normal agar ada variasi tapi tetap sebaris */}
+              <span className="font-medium text-emerald-600">{branchName}</span>
             </div>
-            <div>
-              <h1 className="font-bold text-emerald-700">LazisNU</h1>
-              <p className="text-xs text-gray-600">Mulyoarjo</p>
-            </div>
-          </div>
+          </Link>
 
+          {/* NAV LINKS */}
           <div className="flex items-center gap-8">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
@@ -37,15 +66,15 @@ export function DesktopNav() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "font-semibold transition-colors relative py-2",
+                    "font-semibold transition-colors relative py-2 text-sm uppercase tracking-wide",
                     isActive
                       ? "text-emerald-600"
-                      : "text-gray-600 hover:text-emerald-600"
+                      : "text-gray-500 hover:text-emerald-600"
                   )}
                 >
                   {item.label}
                   {isActive && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600" />
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 rounded-full" />
                   )}
                 </Link>
               );

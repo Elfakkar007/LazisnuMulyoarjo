@@ -29,7 +29,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <DesktopNav />
+        <DesktopNav
+        logoSrc="/assets/logo.ico" 
+        brandName="LazisNU" 
+        branchName="Mulyoarjo" />
         <main className="pb-20 md:pb-0">
           {children}
         </main>
