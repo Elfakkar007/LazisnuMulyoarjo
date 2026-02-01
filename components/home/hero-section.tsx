@@ -1,100 +1,284 @@
-"use client";
+import { useState, useEffect, useCallback } from "react";
 
-import { motion } from "framer-motion";
-import { Coins, TrendingUp } from "lucide-react";
-import { statsData } from "@/lib/dummy-data";
+// ─────────────────────────────────────────────
+// DUMMY DATA
+// ─────────────────────────────────────────────
+const slides = [
+  {
+    id: 1,
+    badge: "KEGIATAN",
+    title: "Santunan Anak Yatim",
+    detail: "12 Okt  •  Masjid Al-Ikhlas, Mulyoarjo",
+    // gradient simulates a charity-photo placeholder
+    bg: "from-emerald-800 via-emerald-600 to-teal-700",
+  },
+  {
+    id: 2,
+    badge: "SOSIAL",
+    title: "Pembagian Sembako Rutin",
+    detail: "25 Okt  •  Balai Desa Mulyoarjo",
+    bg: "from-teal-800 via-emerald-700 to-emerald-500",
+  },
+  {
+    id: 3,
+    badge: "KESEHATAN",
+    title: "Bakti Sosial Kesehatan Desa",
+    detail: "3 Nov  •  Puskesmas Mulyoarjo",
+    bg: "from-emerald-900 via-teal-700 to-emerald-600",
+  },
+];
 
-export function HeroSection() {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
+const stats = [
+  { label: "Total Kaleng", value: "1.250", dark: false },
+  { label: "Perolehan Bulan Ini", value: "Rp 2.450.000", dark: false, badge: true },
+  { label: "Perolehan Tahun Ini", value: "Rp 18.750.000", dark: true, badge: true },
+];
+
+const navLinks = ["Beranda", "Laporan", "Kegiatan", "Profil"];
+
+// ─────────────────────────────────────────────
+// ICONS (inline SVG via lucide-style)
+// ─────────────────────────────────────────────
+const ArrowIcon = ({ size = 20, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M7 17L17 7" />
+    <path d="M7 7h10v10" />
+  </svg>
+);
+
+const CalendarIcon = ({ size = 14, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+);
+
+const MapPinIcon = ({ size = 14, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+    <circle cx="12" cy="10" r="3" />
+  </svg>
+);
+
+// ─────────────────────────────────────────────
+// COMPONENT
+// ─────────────────────────────────────────────
+export default function LazisNUHero() {
+  const [current, setCurrent] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  const goTo = useCallback((idx) => {
+    setFade(false);
+    setTimeout(() => {
+      setCurrent(idx);
+      setFade(true);
+    }, 300);
+  }, []);
+
+  // auto-play every 4 s
+  useEffect(() => {
+    const t = setInterval(() => {
+      goTo((current + 1) % slides.length);
+    }, 4000);
+    return () => clearInterval(t);
+  }, [current, goTo]);
+
+  const slide = slides[current];
 
   return (
-    <section className="relative bg-gradient-to-br from-emerald-50 via-white to-emerald-50 overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23059669' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }} />
-      </div>
-
-      <div className="container mx-auto px-4 py-12 md:py-20 relative">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-12"
-        >
-          <motion.h1
-            className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-          >
-            LazisNU
-            <span className="text-emerald-600"> Mulyoarjo</span>
-          </motion.h1>
-          <motion.p
-            className="text-lg md:text-xl text-gray-600 font-medium max-w-2xl mx-auto"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-          >
-            Transparansi Pengelolaan Koin Amal untuk Kesejahteraan Bersama
-          </motion.p>
-        </motion.div>
-
-        {/* Stats Cards */}
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6, duration: 0.6 }}
-            className="bg-white rounded-2xl shadow-xl p-6 border-2 border-emerald-100 hover:shadow-2xl transition-shadow"
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div className="bg-emerald-100 rounded-full p-3">
-                <Coins className="w-8 h-8 text-emerald-600" />
-              </div>
-              <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">
-                {statsData.currentMonth.percentage}
-              </span>
+    <div className="min-h-screen bg-white font-sans flex flex-col">
+      {/* ══════ A. STICKY NAV ══════ */}
+      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+          {/* Logo inline */}
+          <a href="#" className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center shadow-sm">
+              <span className="text-white font-bold text-sm leading-none">L</span>
             </div>
-            <h3 className="text-sm font-semibold text-gray-500 mb-2">
-              {statsData.currentMonth.label}
-            </h3>
-            <p className="text-3xl md:text-4xl font-extrabold text-gray-900">
-              {formatCurrency(statsData.currentMonth.total)}
-            </p>
-          </motion.div>
+            <span className="text-sm font-bold text-emerald-700 tracking-tight">
+              LazisNU <span className="text-gray-500 font-medium">Mulyoarjo</span>
+            </span>
+          </a>
 
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.8, duration: 0.6 }}
-            className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-2xl shadow-xl p-6 text-white hover:shadow-2xl transition-shadow"
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div className="bg-white/20 rounded-full p-3">
-                <TrendingUp className="w-8 h-8 text-white" />
-              </div>
-              <span className="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full">
-                {statsData.currentYear.percentage}
-              </span>
-            </div>
-            <h3 className="text-sm font-semibold text-emerald-100 mb-2">
-              {statsData.currentYear.label}
-            </h3>
-            <p className="text-3xl md:text-4xl font-extrabold">
-              {formatCurrency(statsData.currentYear.total)}
-            </p>
-          </motion.div>
+          {/* Menu links */}
+          <div className="flex items-center gap-6">
+            {navLinks.map((link) => (
+              <a
+                key={link}
+                href="#"
+                className={`text-sm font-semibold relative transition-colors ${
+                  link === "Beranda"
+                    ? "text-emerald-700"
+                    : "text-gray-500 hover:text-emerald-600"
+                }`}
+              >
+                {link}
+                {link === "Beranda" && (
+                  <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-emerald-600 rounded-full" />
+                )}
+              </a>
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
+      </nav>
+
+      {/* ══════ MAIN CONTENT ══════ */}
+      <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8 flex flex-col gap-6">
+
+        {/* ── B. HERO TYPOGRAPHY (above image) ── */}
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight tracking-tight uppercase">
+            Transparansi Pengelolaan
+            <br />
+            <span className="text-emerald-700">Koin Amal</span>
+          </h1>
+          <p className="text-sm sm:text-base text-gray-400 font-medium mt-1">
+            Untuk Kesejahteraan Bersama
+          </p>
+        </div>
+
+        {/* ── C. SLIDESHOW with glassmorphism overlay ── */}
+        <div className="relative w-full rounded-3xl overflow-hidden" style={{ minHeight: "280px" }}>
+          {/* Background gradient (simulated photo) */}
+          <div
+            className={`absolute inset-0 bg-gradient-to-br ${slide.bg} transition-opacity duration-300`}
+            style={{ opacity: fade ? 1 : 0 }}
+          >
+            {/* Decorative shapes to give depth */}
+            <div className="absolute -top-10 -right-10 w-48 h-48 bg-white/5 rounded-full blur-xl" />
+            <div className="absolute bottom-20 left-10 w-32 h-32 bg-white/10 rounded-full blur-lg" />
+            <div className="absolute top-10 left-1/3 w-24 h-24 bg-white/5 rounded-full blur-md" />
+            {/* Geometric pattern overlay for visual interest */}
+            <svg className="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 800 400" preserveAspectRatio="none">
+              <defs>
+                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.5" />
+                </pattern>
+              </defs>
+              <rect width="800" height="400" fill="url(#grid)" />
+            </svg>
+          </div>
+
+          {/* Glass overlay at bottom */}
+          <div
+            className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 flex items-end justify-between gap-4"
+            style={{
+              background: "linear-gradient(to top, rgba(0,0,0,0.15) 0%, transparent 100%)",
+            }}
+          >
+            <div
+              className="flex-1 rounded-2xl px-5 py-4 flex flex-col gap-2"
+              style={{
+                background: "rgba(255,255,255,0.18)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+                border: "1px solid rgba(255,255,255,0.25)",
+              }}
+            >
+              {/* Badge */}
+              <span
+                className="self-start text-[11px] font-bold tracking-widest uppercase text-white rounded-full px-3 py-0.5"
+                style={{ background: "rgba(255,255,255,0.2)" }}
+              >
+                {slide.badge}
+              </span>
+
+              {/* Title */}
+              <h2
+                className="text-base sm:text-lg font-bold text-white leading-snug"
+                style={{ opacity: fade ? 1 : 0, transition: "opacity 0.3s" }}
+              >
+                {slide.title}
+              </h2>
+
+              {/* Time & Location */}
+              <div className="flex items-center gap-3 text-white/80 text-[12px] font-medium">
+                <span className="flex items-center gap-1">
+                  <CalendarIcon size={13} />
+                  {slide.detail.split("•")[0].trim()}
+                </span>
+                <span className="opacity-40">•</span>
+                <span className="flex items-center gap-1">
+                  <MapPinIcon size={13} />
+                  {slide.detail.split("•")[1]?.trim()}
+                </span>
+              </div>
+            </div>
+
+            {/* Arrow button */}
+            <button className="shrink-0 w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow">
+              <ArrowIcon size={18} className="text-emerald-700" />
+            </button>
+          </div>
+
+          {/* Dot indicators */}
+          <div className="absolute top-4 right-4 flex gap-1.5">
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goTo(i)}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  i === current ? "bg-white w-5" : "bg-white/50"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* ── D. STATS BENTO GRID ── */}
+        <div className="grid grid-cols-3 gap-3 sm:gap-4">
+          {stats.map((s, i) => (
+            <div
+              key={i}
+              className={`rounded-2xl p-4 sm:p-5 flex flex-col gap-1.5 relative overflow-hidden ${
+                s.dark
+                  ? "bg-emerald-700 text-white"
+                  : "bg-emerald-50 text-gray-900"
+              }`}
+            >
+              {/* subtle decorative circle */}
+              <div
+                className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full opacity-10 ${
+                  s.dark ? "bg-white" : "bg-emerald-600"
+                }`}
+              />
+
+              {/* Badge row */}
+              {s.badge && (
+                <span
+                  className={`self-start text-[9px] font-bold tracking-wider uppercase border rounded-full px-2 py-0.5 ${
+                    s.dark
+                      ? "border-white/30 text-white/70"
+                      : "border-emerald-300 text-emerald-600"
+                  }`}
+                >
+                  UPDATED
+                </span>
+              )}
+
+              {/* Value */}
+              <p
+                className={`text-xl sm:text-2xl font-extrabold leading-tight relative z-10 ${
+                  s.dark ? "text-white" : "text-gray-900"
+                }`}
+              >
+                {s.value}
+              </p>
+
+              {/* Label */}
+              <p
+                className={`text-[11px] font-semibold uppercase tracking-wide relative z-10 ${
+                  s.dark ? "text-emerald-200" : "text-gray-500"
+                }`}
+              >
+                {s.label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </main>
+    </div>
   );
 }
