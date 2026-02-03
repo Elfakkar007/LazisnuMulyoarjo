@@ -1,9 +1,9 @@
 // =====================================================
 // API SERVICES - Public Data Fetching
-// For client and server components
+// For server components (uses server client by default)
 // =====================================================
 
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/utils/supabase/server';
 import { Database } from '@/types/database.types';
 
 type Tables = Database['public']['Tables'];
@@ -13,7 +13,7 @@ type Tables = Database['public']['Tables'];
 // =====================================================
 
 export async function getHomepageSlides() {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const { data, error } = await supabase
     .from('homepage_slides')
@@ -30,7 +30,7 @@ export async function getHomepageSlides() {
 }
 
 export async function getActiveFinancialYear() {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const { data, error } = await supabase
     .from('financial_years')
@@ -47,7 +47,7 @@ export async function getActiveFinancialYear() {
 }
 
 export async function getCurrentMonthIncome() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const currentMonth = new Date().getMonth() + 1; // 1-12
   
   const activeYear = await getActiveFinancialYear();
@@ -69,7 +69,7 @@ export async function getCurrentMonthIncome() {
 }
 
 export async function getTotalKalengDistributed() {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const activeYear = await getActiveFinancialYear();
   if (!activeYear) return 0;
@@ -89,7 +89,7 @@ export async function getTotalKalengDistributed() {
 }
 
 export async function getMonthlyTrendData(yearId?: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   let targetYearId = yearId;
   if (!targetYearId) {
@@ -117,29 +117,8 @@ export async function getMonthlyTrendData(yearId?: string) {
   }));
 }
 
-export async function getYearlyComparison(years: number = 3) {
-  const supabase = createClient();
-  
-  const { data, error } = await supabase
-    .from('financial_years')
-    .select('*')
-    .order('year', { ascending: false })
-    .limit(years);
-
-  if (error) {
-    console.error('Error fetching yearly comparison:', error);
-    return [];
-  }
-
-  return data.map(item => ({
-    year: item.year.toString(),
-    pemasukan: item.total_income,
-    pengeluaran: item.total_expense,
-  })).reverse();
-}
-
 export async function getRecentActivities(limit: number = 5) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const { data, error } = await supabase
     .from('activity_articles')
@@ -153,20 +132,7 @@ export async function getRecentActivities(limit: number = 5) {
     return [];
   }
 
-  return data.map(article => ({
-    id: article.id,
-    title: article.title,
-    slug: article.slug,
-    category: article.category,
-    excerpt: article.excerpt,
-    date: new Date(article.activity_date).toLocaleDateString('id-ID', { 
-      day: 'numeric', 
-      month: 'short', 
-      year: 'numeric' 
-    }),
-    location: article.location,
-    image: article.featured_image_url,
-  }));
+  return data;
 }
 
 // =====================================================
@@ -174,7 +140,7 @@ export async function getRecentActivities(limit: number = 5) {
 // =====================================================
 
 export async function getOrganizationProfile() {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const { data, error } = await supabase
     .from('organization_profile')
@@ -190,7 +156,7 @@ export async function getOrganizationProfile() {
 }
 
 export async function getStructureData() {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   // Fetch positions with their members
   const { data: positions, error: positionsError } = await supabase
@@ -230,7 +196,7 @@ export async function getStructureData() {
 // =====================================================
 
 export async function getFinancialYears() {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const { data, error } = await supabase
     .from('financial_years')
@@ -246,7 +212,7 @@ export async function getFinancialYears() {
 }
 
 export async function getKalengDistribution(yearId: string, month?: number) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   let query = supabase
     .from('kaleng_distribution')
@@ -268,7 +234,7 @@ export async function getKalengDistribution(yearId: string, month?: number) {
 }
 
 export async function getMonthlyIncome(yearId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const { data, error } = await supabase
     .from('monthly_income')
@@ -285,7 +251,7 @@ export async function getMonthlyIncome(yearId: string) {
 }
 
 export async function getProgramCategories() {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const { data, error } = await supabase
     .from('program_categories')
@@ -301,7 +267,7 @@ export async function getProgramCategories() {
 }
 
 export async function getPrograms(yearId: string, categoryId?: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   let query = supabase
     .from('programs')
@@ -326,7 +292,7 @@ export async function getPrograms(yearId: string, categoryId?: string) {
 }
 
 export async function getFinancialTransactions(yearId: string, categoryId?: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   let query = supabase
     .from('financial_transactions')
@@ -360,7 +326,7 @@ export async function getArticles(filters?: {
   limit?: number;
   offset?: number;
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   let query = supabase
     .from('activity_articles')
@@ -392,11 +358,11 @@ export async function getArticles(filters?: {
     return { articles: [], total: 0 };
   }
 
-  return { articles: data, total: count || 0 };
+  return { articles: data || [], total: count || 0 };
 }
 
 export async function getArticleBySlug(slug: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const { data, error } = await supabase
     .from('activity_articles')
@@ -417,7 +383,7 @@ export async function getArticleBySlug(slug: string) {
 }
 
 export async function getRelatedArticles(category: string, currentSlug: string, limit: number = 3) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const { data, error } = await supabase
     .from('activity_articles')
@@ -433,5 +399,5 @@ export async function getRelatedArticles(category: string, currentSlug: string, 
     return [];
   }
 
-  return data;
+  return data || [];
 }
