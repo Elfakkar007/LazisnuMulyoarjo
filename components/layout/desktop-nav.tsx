@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image"; // Import Image untuk logo custom
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -13,9 +13,9 @@ const navItems = [
 ];
 
 interface DesktopNavProps {
-  logoSrc?: string; // Opsional: URL gambar logo
-  brandName?: string; // Default: LazisNU
-  branchName?: string; // Default: Mulyoarjo
+  logoSrc?: string;
+  brandName?: string;
+  branchName?: string;
 }
 
 export function DesktopNav({ 
@@ -26,13 +26,12 @@ export function DesktopNav({
   const pathname = usePathname();
 
   return (
-    <nav className="hidden md:block sticky top-0 z-50 bg-white border-b border-gray-200">
+    <nav className="hidden md:block sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           
-          {/* BAGIAN LOGO & JUDUL (Dibuat Custom & Inline) */}
+          {/* LOGO & BRAND */}
           <Link href="/" className="flex items-center gap-3 group">
-            {/* Logic: Jika ada logoSrc pakai Image, jika tidak pakai placeholder "L" */}
             {logoSrc ? (
               <div className="relative w-10 h-10 overflow-hidden rounded-full">
                 <Image 
@@ -48,15 +47,13 @@ export function DesktopNav({
               </div>
             )}
             
-            {/* Judul Inline: Flex row memastikan satu baris */}
             <div className="flex items-center gap-1.5 text-lg">
               <span className="font-bold text-emerald-700">{brandName}</span>
-              {/* Branch name dibuat font normal agar ada variasi tapi tetap sebaris */}
               <span className="font-medium text-emerald-600">{branchName}</span>
             </div>
           </Link>
 
-          {/* NAV LINKS */}
+          {/* NAV LINKS & ADMIN BUTTON */}
           <div className="flex items-center gap-8">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
@@ -79,6 +76,14 @@ export function DesktopNav({
                 </Link>
               );
             })}
+            
+            {/* Admin Button */}
+            <Link
+              href="/admin"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-2 rounded-full transition-colors text-sm uppercase tracking-wide shadow-md hover:shadow-lg"
+            >
+              Admin
+            </Link>
           </div>
         </div>
       </div>
