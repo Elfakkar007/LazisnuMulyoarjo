@@ -8,13 +8,7 @@ import { KalengDistributionSection } from "./kaleng-distribution-section";
 import { MonthlyIncomeSection } from "./monthly-income-section";
 import { ProgramsSection } from "./programs-section";
 import { ExpenseDetailSection } from "./expense-detail-section";
-import {
-  getKalengDistribution,
-  getMonthlyIncome,
-  getPrograms,
-  getProgramCategories,
-  getFinancialTransactions,
-} from "@/lib/api/public";
+import { fetchFinancialData } from "@/app/actions/financial"; 
 
 interface FinancialYear {
   id: string;
@@ -50,23 +44,19 @@ export function FinancialReportContent({
     }
   }, [selectedYear]);
 
+  // --- FUNGSI INI KITA SEDERHANAKAN ---
   const loadYearData = async (yearId: string) => {
     setLoading(true);
     try {
-      const [kaleng, income, programs, categories, transactions] =
-        await Promise.all([
-          getKalengDistribution(yearId),
-          getMonthlyIncome(yearId),
-          getPrograms(yearId),
-          getProgramCategories(),
-          getFinancialTransactions(yearId),
-        ]);
+      // Panggil Server Action (ini aman dijalankan di client)
+      const data = await fetchFinancialData(yearId);
 
-      setKalengData(kaleng);
-      setIncomeData(income);
-      setProgramsData(programs);
-      setCategoriesData(categories);
-      setTransactionsData(transactions);
+      // Masukkan data ke state
+      setKalengData(data.kaleng);
+      setIncomeData(data.income);
+      setProgramsData(data.programs);
+      setCategoriesData(data.categories);
+      setTransactionsData(data.transactions);
     } catch (error) {
       console.error("Error loading financial data:", error);
     } finally {
