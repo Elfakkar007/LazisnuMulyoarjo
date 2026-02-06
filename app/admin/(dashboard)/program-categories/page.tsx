@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Edit, Trash2, Save, X, GripVertical } from 'lucide-react';
-import { getProgramCategories } from '@/lib/api/public';
+import { getProgramCategories } from '@/lib/api/client-admin';
 import { 
   createProgramCategory, 
   updateProgramCategory, 

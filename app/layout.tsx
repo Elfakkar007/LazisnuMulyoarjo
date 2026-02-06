@@ -6,6 +6,12 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { Footer } from "@/components/layout/footer";
 import { WhatsAppFloatingButton } from "@/components/layout/whatsapp-button";
 import { getOrganizationProfile } from "@/lib/api/public";
+import { validateEnv } from '@/lib/utils/env';
+
+// Validasi saat build time
+if (process.env.NODE_ENV !== 'production') {
+  validateEnv();
+}
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

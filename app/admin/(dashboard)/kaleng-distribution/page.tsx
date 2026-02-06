@@ -5,10 +5,10 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Package, Upload, Download, Save, Plus } from 'lucide-react';
-import { getFinancialYears, getKalengDistribution } from '@/lib/api/public';
+import { getFinancialYears, getKalengDistribution } from '@/lib/api/client-admin';
 import { bulkUpsertKalengDistribution } from '@/lib/actions/admin';
 import { formatNumber, getMonthName, DUSUN_LIST } from '@/lib/utils/helpers';
 
@@ -58,7 +58,7 @@ export default function KalengDistributionPage() {
   const loadKalengData = async () => {
     setLoading(true);
     const data = await getKalengDistribution(selectedYearId);
-    
+
     // Convert array to keyed object for easier editing
     const dataMap: Record<string, KalengData> = {};
     data.forEach(item => {
@@ -71,7 +71,7 @@ export default function KalengDistributionPage() {
         total_not_collected: item.total_not_collected,
       };
     });
-    
+
     setKalengData(dataMap);
     setLoading(false);
   };
@@ -129,7 +129,7 @@ export default function KalengDistributionPage() {
   const handleExportTemplate = () => {
     // Create CSV template
     let csv = 'Bulan,Dusun,Terdistribusi,Terkumpul,BelumTerkumpul\n';
-    
+
     MONTHS.forEach(month => {
       DUSUN_LIST.forEach(dusun => {
         const distributed = getValue(month, dusun, 'total_distributed');
@@ -156,9 +156,9 @@ export default function KalengDistributionPage() {
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const lines = text.split('\n').slice(1); // Skip header
-      
+
       const newData: Record<string, KalengData> = {};
-      
+
       lines.forEach(line => {
         const [month, dusun, distributed, collected, notCollected] = line.split(',');
         if (month && dusun) {
@@ -172,11 +172,11 @@ export default function KalengDistributionPage() {
           };
         }
       });
-      
+
       setKalengData(newData);
       alert('Data berhasil diimport! Jangan lupa klik Simpan.');
     };
-    
+
     reader.readAsText(file);
     event.target.value = ''; // Reset input
   };

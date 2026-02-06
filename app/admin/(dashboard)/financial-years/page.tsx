@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Edit, Trash2, Check, X, TrendingUp, Calendar } from 'lucide-react';
-import { getFinancialYears } from '@/lib/api/public';
+import { getFinancialYears } from '@/lib/api/client-admin';
 import { 
   createFinancialYear, 
   updateFinancialYear, 

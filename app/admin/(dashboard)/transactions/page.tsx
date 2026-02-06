@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Save, Trash2, GripVertical, Download } from 'lucide-react';
-import { getFinancialYears, getProgramCategories, getFinancialTransactions } from '@/lib/api/public';
+import { getFinancialYears, getProgramCategories, getFinancialTransactions } from '@/lib/api/client-admin';
 import { bulkUpsertFinancialTransactions } from '@/lib/actions/admin';
 import { formatCurrency, formatDate } from '@/lib/utils/helpers';
 

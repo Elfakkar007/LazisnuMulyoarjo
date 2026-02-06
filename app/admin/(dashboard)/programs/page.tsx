@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Edit, Trash2, Upload, Download, Check, X, Filter } from 'lucide-react';
-import { getFinancialYears, getPrograms, getProgramCategories } from '@/lib/api/public';
+import { getFinancialYears, getPrograms, getProgramCategories } from '@/lib/api/client-admin';
 import { createProgram, updateProgram, deleteProgram, bulkCreatePrograms } from '@/lib/actions/admin';
 import { formatCurrency, calculateProgramProgress } from '@/lib/utils/helpers';
 

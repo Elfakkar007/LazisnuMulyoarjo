@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { DollarSign, Save, TrendingUp } from 'lucide-react';
-import { getFinancialYears, getMonthlyIncome } from '@/lib/api/public';
+import { getFinancialYears, getMonthlyIncome } from '@/lib/api/client-admin';
 import { upsertMonthlyIncome } from '@/lib/actions/admin';
 import { formatCurrency, getMonthName } from '@/lib/utils/helpers';
 
