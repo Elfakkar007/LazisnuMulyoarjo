@@ -7,7 +7,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { updatePassword, isValidPassword } from '@/lib/auth/helpers';
+import { updatePassword } from '@/lib/auth/helpers';
+import { isValidPassword } from '@/lib/auth/validation';
 import { Lock, Eye, EyeOff, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
