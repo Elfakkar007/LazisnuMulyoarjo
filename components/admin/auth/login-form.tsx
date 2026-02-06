@@ -113,7 +113,7 @@ export function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                  placeholder="admin@lazisnu-mulyoarjo.org"
+                  placeholder="masukkan email"
                   required
                   autoComplete="email"
                   disabled={loading}
@@ -139,7 +139,7 @@ export function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                  placeholder="••••••••"
+                  placeholder="masukkan password"
                   required
                   autoComplete="current-password"
                   disabled={loading}
