@@ -1,14 +1,15 @@
 // =====================================================
-// TRANSACTIONS MANAGEMENT PAGE (Dynamic Table Builder)
+// FIXED TRANSACTIONS MANAGEMENT PAGE
 // File: app/admin/(dashboard)/transactions/page.tsx
 // =====================================================
 
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, Reorder } from 'framer-motion';
-import { Plus, Save, Trash2, GripVertical, Calendar as CalendarIcon, Download } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Plus, Save, Trash2, GripVertical, Download } from 'lucide-react';
 import { getFinancialYears, getProgramCategories, getFinancialTransactions } from '@/lib/api/public';
+import { bulkUpsertFinancialTransactions } from '@/lib/actions/admin';
 import { formatCurrency, formatDate } from '@/lib/utils/helpers';
 
 interface FinancialYear {
@@ -30,7 +31,7 @@ interface TransactionRow {
   transaction_type: 'income' | 'expense';
   amount: number;
   transaction_date: string;
-  balance?: number; // Calculated
+  balance?: number;
 }
 
 export default function TransactionsPage() {
@@ -112,11 +113,10 @@ export default function TransactionsPage() {
 
   const addIncomeRow = () => {
     const category = categories.find(c => c.id === selectedCategoryId);
-    const totalAllocation = 0; // You would calculate this from JPZIS 75% * category percentage
     
     const newRow: TransactionRow = {
       id: crypto.randomUUID(),
-      description: `Total Dana ${category?.name} 2025`,
+      description: `Total Dana ${category?.name} ${years.find(y => y.id === selectedYearId)?.year || ''}`,
       transaction_type: 'income',
       amount: 0,
       transaction_date: new Date().toISOString().split('T')[0],
@@ -152,11 +152,31 @@ export default function TransactionsPage() {
     
     setSaving(true);
     
-    // Here you would implement the actual save logic
-    // This would involve calling a server action to upsert the transactions
-    alert('Fitur save akan segera diimplementasikan dengan server action');
-    
-    setSaving(false);
+    try {
+      // Prepare data for bulk upsert
+      const items = transactions.map(row => ({
+        year_id: selectedYearId,
+        category_id: selectedCategoryId,
+        transaction_type: row.transaction_type,
+        description: row.description,
+        amount: row.amount,
+        transaction_date: row.transaction_date,
+      }));
+
+      const result = await bulkUpsertFinancialTransactions(items);
+
+      if (result.success) {
+        alert('Data berhasil disimpan!');
+        await loadTransactions();
+      } else {
+        alert(`Gagal menyimpan: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      alert('Terjadi kesalahan saat menyimpan');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleExportPDF = () => {
@@ -401,7 +421,6 @@ export default function TransactionsPage() {
           <li>• <strong>Saldo</strong>: Dihitung otomatis (Saldo sebelumnya + Debet - Kredit)</li>
           <li>• Baris pertama biasanya "Total Dana [Kategori] [Tahun]" sebagai Debet</li>
           <li>• Urutkan transaksi berdasarkan tanggal untuk akurasi saldo</li>
-          <li>• Drag icon untuk reorder baris (coming soon)</li>
         </ul>
       </div>
     </div>

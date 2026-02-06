@@ -598,3 +598,155 @@ export async function reorderHomepageSlides(
   revalidatePath('/');
   return { success: true };
 }
+
+// =====================================================
+// ADDITIONS TO lib/actions/admin.ts
+// Tambahkan function-function berikut ke file lib/actions/admin.ts
+// =====================================================
+
+
+// =====================================================
+// FINANCIAL TRANSACTIONS (untuk Transaction Builder)
+// =====================================================
+
+export async function createFinancialTransaction(data: {
+  year_id: string;
+  category_id: string;
+  transaction_type: 'income' | 'expense';
+  description: string;
+  amount: number;
+  transaction_date: string;
+}) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('financial_transactions')
+    .insert(data);
+
+  if (error) {
+    console.error('Error creating transaction:', error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/admin/transactions');
+  revalidatePath('/laporan');
+  return { success: true };
+}
+
+export async function updateFinancialTransaction(
+  id: string,
+  data: {
+    description?: string;
+    amount?: number;
+    transaction_date?: string;
+  }
+) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('financial_transactions')
+    .update(data)
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error updating transaction:', error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/admin/transactions');
+  revalidatePath('/laporan');
+  return { success: true };
+}
+
+export async function deleteFinancialTransaction(id: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('financial_transactions')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting transaction:', error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/admin/transactions');
+  revalidatePath('/laporan');
+  return { success: true };
+}
+
+export async function bulkUpsertFinancialTransactions(items: {
+  year_id: string;
+  category_id: string;
+  transaction_type: 'income' | 'expense';
+  description: string;
+  amount: number;
+  transaction_date: string;
+}[]) {
+  const supabase = await createClient();
+
+  // Delete existing transactions for this year/category first
+  if (items.length > 0) {
+    const { year_id, category_id } = items[0];
+    await supabase
+      .from('financial_transactions')
+      .delete()
+      .eq('year_id', year_id)
+      .eq('category_id', category_id);
+  }
+
+  // Insert new transactions
+  const { error } = await supabase
+    .from('financial_transactions')
+    .insert(items);
+
+  if (error) {
+    console.error('Error bulk upserting transactions:', error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/admin/transactions');
+  revalidatePath('/laporan');
+  return { success: true };
+}
+
+// =====================================================
+// TRANSACTION TEMPLATES
+// =====================================================
+
+export async function createTransactionTemplate(data: {
+  category_id: string;
+  template_name: string;
+  columns: any;
+}) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('transaction_templates')
+    .insert(data);
+
+  if (error) {
+    console.error('Error creating template:', error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/admin/transactions');
+  return { success: true };
+}
+
+export async function getTransactionTemplates(categoryId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('transaction_templates')
+    .select('*')
+    .eq('category_id', categoryId);
+
+  if (error) {
+    console.error('Error fetching templates:', error);
+    return [];
+  }
+
+  return data || [];
+}
