@@ -7,9 +7,6 @@ import {
     Building2,
     TrendingUp,
     Package,
-    DollarSign,
-    FolderKanban,
-    BookOpen,
     MoreHorizontal
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -23,41 +20,32 @@ export function MobileAdminMenu() {
         {
             icon: LayoutDashboard,
             label: 'Dashboard',
-            href: '/admin'
+            href: '/admin/dashboard'
         },
         {
             icon: Building2,
             label: 'Profil',
-            href: '/admin/profil-organisasi'
+            href: '/admin/profile'
         },
         {
             icon: TrendingUp,
             label: 'Keuangan',
-            href: '/admin/tahun-keuangan'
+            href: '/admin/financial-years'
         },
         {
             icon: Package,
             label: 'Kaleng',
-            href: '/admin/distribusi-kaleng'
+            href: '/admin/kaleng-distribution'
         }
     ];
 
     const moreMenuItems = [
-        {
-            icon: DollarSign,
-            label: 'Pemasukan',
-            href: '/admin/pemasukan-bulanan'
-        },
-        {
-            icon: FolderKanban,
-            label: 'Kategori',
-            href: '/admin/kategori-program'
-        },
-        {
-            icon: BookOpen,
-            label: 'Program',
-            href: '/admin/program-kerja'
-        }
+        { label: 'Pemasukan', href: '/admin/monthly-income' },
+        { label: 'Kategori', href: '/admin/program-categories' },
+        { label: 'Program', href: '/admin/programs' },
+        { label: 'Transaksi', href: '/admin/transactions' },
+        { label: 'Artikel', href: '/admin/articles' },
+        { label: 'Slides', href: '/admin/homepage-slides' }
     ];
 
     return (
@@ -69,14 +57,13 @@ export function MobileAdminMenu() {
                     onClick={() => setShowMore(false)}
                 >
                     <div
-                        className="absolute bottom-16 left-0 right-0 bg-white rounded-t-2xl p-4"
+                        className="absolute bottom-16 left-0 right-0 bg-white rounded-t-2xl p-4 shadow-2xl max-h-[60vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4" />
                         <h3 className="font-semibold text-gray-900 mb-3">More Menu</h3>
                         <div className="grid grid-cols-3 gap-3">
                             {moreMenuItems.map((item) => {
-                                const Icon = item.icon;
                                 const isActive = pathname === item.href;
 
                                 return (
@@ -91,7 +78,6 @@ export function MobileAdminMenu() {
                                                 : "text-gray-600 hover:bg-gray-50"
                                         )}
                                     >
-                                        <Icon className="w-6 h-6" />
                                         <span className="text-xs font-medium text-center">
                                             {item.label}
                                         </span>
@@ -104,8 +90,8 @@ export function MobileAdminMenu() {
             )}
 
             {/* Bottom Navigation */}
-            <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
-                <div className="flex items-center justify-around px-2 py-2">
+            <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 shadow-lg">
+                <div className="flex items-center justify-around px-2 py-2 safe-area-bottom">
                     {primaryMenuItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href || pathname.startsWith(item.href + '/');

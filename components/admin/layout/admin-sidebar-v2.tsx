@@ -5,160 +5,106 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Building2,
-  TrendingUp,
+  Calendar,
   Package,
-  DollarSign,
+  TrendingUp,
   FolderKanban,
-  BookOpen,
+  Briefcase,
+  Receipt,
   FileText,
-  Presentation,
-  ChevronLeft,
-  ChevronRight
+  Image as ImageIcon,
+  X,
+  ExternalLink
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
-interface AdminSidebarV2Props {
-  isCollapsed: boolean;
-  setIsCollapsed: (value: boolean) => void;
+interface AdminSidebarProps {
+  onClose?: () => void;
+  isMobile?: boolean;
 }
 
-export function AdminSidebarV2({ isCollapsed, setIsCollapsed }: AdminSidebarV2Props) {
+const menuItems = [
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
+  { icon: Building2, label: 'Profil Organisasi', href: '/admin/profile' },
+  { icon: Calendar, label: 'Tahun Keuangan', href: '/admin/financial-years' },
+  { icon: Package, label: 'Distribusi Kaleng', href: '/admin/kaleng-distribution' },
+  { icon: TrendingUp, label: 'Pemasukan Bulanan', href: '/admin/monthly-income' },
+  { icon: FolderKanban, label: 'Kategori Program', href: '/admin/program-categories' },
+  { icon: Briefcase, label: 'Program Kerja', href: '/admin/programs' },
+  { icon: Receipt, label: 'Rincian Pengeluaran', href: '/admin/transactions' },
+  { icon: FileText, label: 'Artikel Kegiatan', href: '/admin/articles' },
+  { icon: ImageIcon, label: 'Homepage Slides', href: '/admin/homepage-slides' },
+];
+
+export default function AdminSidebarV2({ onClose, isMobile = false }: AdminSidebarProps) {
   const pathname = usePathname();
 
-  const menuItems = [
-    {
-      icon: Building2,
-      label: 'Profil Organisasi',
-      href: '/admin/profil-organisasi'
-    },
-    {
-      icon: TrendingUp,
-      label: 'Tahun Keuangan',
-      href: '/admin/tahun-keuangan'
-    },
-    {
-      icon: Package,
-      label: 'Distribusi Kaleng',
-      href: '/admin/distribusi-kaleng'
-    },
-    {
-      icon: DollarSign,
-      label: 'Pemasukan Bulanan',
-      href: '/admin/pemasukan-bulanan'
-    },
-    {
-      icon: FolderKanban,
-      label: 'Kategori Program',
-      href: '/admin/kategori-program'
-    },
-    {
-      icon: BookOpen,
-      label: 'Program Kerja',
-      href: '/admin/program-kerja'
-    },
-    {
-      icon: FileText,
-      label: 'Rincian Pengeluaran',
-      href: '/admin/rincian-pengeluaran'
-    },
-    {
-      icon: FileText,
-      label: 'Artikel Kegiatan',
-      href: '/admin/artikel-kegiatan'
-    },
-    {
-      icon: Presentation,
-      label: 'Homepage Slides',
-      href: '/admin/homepage-slides'
-    }
-  ];
-
   return (
-    <aside
-      className={cn(
-        "fixed left-0 top-0 h-screen bg-white border-r border-gray-200",
-        "transition-all duration-300 ease-in-out",
-        "z-40",
-        isCollapsed ? "w-20" : "w-64"
-      )}
-    >
-      {/* Sidebar Header */}
-      <div className="h-20 border-b border-gray-200 flex items-center justify-between px-4">
-        {!isCollapsed && (
-          <Link href="/admin" className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-              <LayoutDashboard className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <span className="font-bold text-gray-900 text-sm block">Admin Dashboard</span>
-              <span className="text-xs text-gray-500">LazisNU Mulyoarjo</span>
-            </div>
-          </Link>
+    <aside className="flex h-full w-64 flex-col bg-white border-r border-gray-200 shadow-sm">
+      {/* Header with Logo */}
+      <div className="flex h-16 items-center justify-between px-6 border-b border-gray-200">
+        <Link href="/" className="flex items-center gap-3">
+          <Image
+            src="/logo.png"
+            alt="LazisNU Mulyoarjo Logo"
+            width={40}
+            height={40}
+            className="object-contain"
+          />
+          <div className="flex flex-col">
+            <span className="text-sm font-bold text-gray-900">LazisNU</span>
+            <span className="text-xs text-gray-500">Mulyoarjo</span>
+          </div>
+        </Link>
+        {isMobile && onClose && (
+          <button
+            onClick={onClose}
+            className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
         )}
-
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className={cn(
-            "p-2 rounded-lg hover:bg-gray-100 transition-colors",
-            isCollapsed && "mx-auto"
-          )}
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {isCollapsed ? (
-            <ChevronRight className="w-5 h-5 text-gray-600" />
-          ) : (
-            <ChevronLeft className="w-5 h-5 text-gray-600" />
-          )}
-        </button>
       </div>
 
       {/* Navigation Menu */}
-      <nav className="p-3 space-y-1 overflow-y-auto h-[calc(100vh-5rem)]">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+      <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <div className="space-y-1">
+          {menuItems.map((item) => {
+            const isActive = pathname === item.href;
+            const Icon = item.icon;
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
-                "group relative",
-                isActive
-                  ? "bg-emerald-50 text-emerald-700"
-                  : "text-gray-700 hover:bg-gray-50",
-                isCollapsed && "justify-center px-2"
-              )}
-            >
-              {/* Active indicator */}
-              {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-emerald-600 rounded-r-full" />
-              )}
-
-              {/* Icon */}
-              <Icon className={cn(
-                "w-5 h-5 flex-shrink-0",
-                isActive ? "text-emerald-700" : "text-gray-500 group-hover:text-gray-700"
-              )} />
-
-              {/* Label */}
-              {!isCollapsed && (
-                <span className="flex-1 font-medium text-sm">
-                  {item.label}
-                </span>
-              )}
-
-              {/* Tooltip for collapsed state */}
-              {isCollapsed && (
-                <div className="absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                  {item.label}
-                </div>
-              )}
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onClose}
+                className={`
+                  group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200
+                  ${isActive
+                    ? 'bg-emerald-50 text-emerald-700 shadow-sm border-l-4 border-emerald-600 pl-2.5'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 border-l-4 border-transparent'
+                  }
+                `}
+              >
+                <Icon className={`h-5 w-5 flex-shrink-0 transition-colors ${isActive ? 'text-emerald-600' : 'text-gray-500 group-hover:text-gray-700'
+                  }`} />
+                <span className="truncate">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
       </nav>
+
+      {/* Footer Link to Website */}
+      <div className="border-t border-gray-200 p-4">
+        <Link
+          href="/"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 border border-gray-200 hover:border-gray-300 shadow-sm"
+        >
+          <ExternalLink className="h-5 w-5 text-gray-500" />
+          <span>Ke Website</span>
+        </Link>
+      </div>
     </aside>
   );
 }

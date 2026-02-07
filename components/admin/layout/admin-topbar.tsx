@@ -1,91 +1,93 @@
 'use client';
 
-import { Bell, Search, User, LogOut } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
+import { Bell, Menu, Search, User } from 'lucide-react';
+import { useState } from 'react';
 
 interface AdminTopbarProps {
-  isSidebarCollapsed: boolean;
+  onMenuClick: () => void;
 }
 
-export function AdminTopbar({ isSidebarCollapsed }: AdminTopbarProps) {
-  const router = useRouter();
-
-  const handleSignOut = async () => {
-    // TODO: Implement your sign out logic here
-    // Example with next-auth: await signOut({ callbackUrl: '/login' })
-    // Example with custom auth: await fetch('/api/auth/signout')
-    router.push('/login');
-  };
+export default function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   return (
-    <header
-      className={cn(
-        "fixed top-0 right-0 h-16 md:h-20 bg-white border-b border-gray-200",
-        "transition-all duration-300 ease-in-out",
-        "z-30",
-        // Adjust left position based on sidebar state
-        "left-0 md:left-64",
-        isSidebarCollapsed && "md:left-20"
-      )}
-    >
-      <div className="h-full px-4 md:px-6 flex items-center justify-between">
-        {/* Search Bar */}
-        <div className="flex-1 max-w-md">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 md:px-6 shadow-sm">
+      {/* Left Section - Mobile Menu + Search */}
+      <div className="flex items-center gap-4 flex-1">
+        {/* Mobile Menu Button */}
+        <button
+          onClick={onMenuClick}
+          className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 md:hidden transition-colors"
+        >
+          <Menu className="h-6 w-6" />
+        </button>
+
+        {/* Search Bar - Hidden on Mobile */}
+        <div className="hidden md:flex items-center gap-2 max-w-md w-full">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Cari..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
             />
           </div>
         </div>
+      </div>
 
-        {/* Right Section */}
-        <div className="flex items-center gap-4">
-          {/* Notifications */}
+      {/* Right Section - Notifications + User */}
+      <div className="flex items-center gap-2">
+        {/* Notification Button */}
+        <button className="relative rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors">
+          <Bell className="h-5 w-5" />
+          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
+        </button>
+
+        {/* User Menu */}
+        <div className="relative">
           <button
-            className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            aria-label="Notifications"
+            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
           >
-            <Bell className="w-5 h-5 text-gray-600" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white">
+              <User className="h-4 w-4" />
+            </div>
+            <div className="hidden md:block text-left">
+              <p className="text-sm font-medium text-gray-900">Admin User</p>
+              <p className="text-xs text-gray-500">admin@lazisnu.org</p>
+            </div>
           </button>
 
-          {/* User Menu */}
-          <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
-            <div className="hidden md:block text-right">
-              <p className="text-sm font-medium text-gray-900">
-                Admin User
-              </p>
-              <p className="text-xs text-gray-500">
-                admin@example.com
-              </p>
-            </div>
-
-            <div className="relative group">
-              <button
-                className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-medium"
-                aria-label="User menu"
-              >
-                <User className="w-5 h-5" />
-              </button>
-
-              {/* Dropdown Menu */}
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                <div className="p-2">
-                  <button
-                    onClick={handleSignOut}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Sign Out
-                  </button>
-                </div>
+          {/* Dropdown Menu */}
+          {isUserMenuOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setIsUserMenuOpen(false)}
+              ></div>
+              <div className="absolute right-0 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-2 shadow-lg z-20">
+                <a
+                  href="#"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Profile
+                </a>
+                <a
+                  href="#"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Settings
+                </a>
+                <hr className="my-2 border-gray-200" />
+                <a
+                  href="/api/auth/signout"
+                  className="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  Sign Out
+                </a>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </div>
     </header>
