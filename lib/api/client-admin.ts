@@ -246,3 +246,198 @@ export async function getStructureData() {
 
   return { core, dusun };
 }
+// =====================================================
+// DASHBOARD FUNCTIONS - ADD TO lib/api/client-admin.ts
+// Tambahkan fungsi-fungsi ini ke file lib/api/client-admin.ts
+// =====================================================
+
+// NEW: Get dashboard stats (Quick Stats Cards)
+export async function getDashboardStats() {
+  const supabase = createClient();
+
+  // Get active year
+  const { data: activeYear } = await supabase
+    .from('financial_years')
+    .select('*')
+    .eq('is_active', true)
+    .single();
+
+  if (!activeYear) {
+    return {
+      totalIncome: 0,
+      totalExpense: 0,
+      balance: 0,
+      totalArticles: 0,
+      totalDistribution: 0,
+    };
+  }
+
+  // Get total income for the year
+  const { data: incomeData } = await supabase
+    .from('monthly_income')
+    .select('gross_amount')
+    .eq('year_id', activeYear.id);
+
+  const totalIncome = incomeData?.reduce((sum, item) => sum + (item.gross_amount || 0), 0) || 0;
+
+  // Get total expenses for the year
+  const { data: expenseData } = await supabase
+    .from('financial_transactions')
+    .select('amount')
+    .eq('year_id', activeYear.id)
+    .eq('transaction_type', 'expense');
+
+  const totalExpense = expenseData?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0;
+
+  // Calculate balance
+  const balance = totalIncome - totalExpense;
+
+  // Get total published articles
+  const { count: totalArticles } = await supabase
+    .from('activity_articles')
+    .select('*', { count: 'exact', head: true })
+    .eq('is_published', true);
+
+  // Get total kaleng distribution for current month
+  const currentMonth = new Date().getMonth() + 1;
+  const { data: distributionData } = await supabase
+    .from('kaleng_distribution')
+    .select('total_distributed')
+    .eq('year_id', activeYear.id)
+    .eq('month', currentMonth);
+
+  const totalDistribution = distributionData?.reduce((sum, item) => sum + (item.total_distributed || 0), 0) || 0;
+
+  return {
+    totalIncome,
+    totalExpense,
+    balance,
+    totalArticles: totalArticles || 0,
+    totalDistribution,
+  };
+}
+
+// NEW: Get recent transactions
+export async function getRecentTransactions(limit: number = 5) {
+  const supabase = createClient();
+
+  const { data: activeYear } = await supabase
+    .from('financial_years')
+    .select('*')
+    .eq('is_active', true)
+    .single();
+
+  if (!activeYear) return [];
+
+  const { data, error } = await supabase
+    .from('financial_transactions')
+    .select(`
+      *,
+      category:program_categories(name)
+    `)
+    .eq('year_id', activeYear.id)
+    .order('transaction_date', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('Error fetching recent transactions:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+// NEW: Get recent draft articles
+export async function getRecentDraftArticles(limit: number = 3) {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from('activity_articles')
+    .select('id, title, category, created_at')
+    .eq('is_published', false)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('Error fetching recent draft articles:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+// NEW: Get monthly income chart data (6 months)
+export async function getMonthlyIncomeChart(months: number = 6) {
+  const supabase = createClient();
+
+  const { data: activeYear } = await supabase
+    .from('financial_years')
+    .select('*')
+    .eq('is_active', true)
+    .single();
+
+  if (!activeYear) return [];
+
+  const { data, error } = await supabase
+    .from('monthly_income')
+    .select('month, gross_amount')
+    .eq('year_id', activeYear.id)
+    .order('month', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching monthly income chart:', error);
+    return [];
+  }
+
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+
+  // Get last N months
+  const allMonths = data || [];
+  const lastMonths = allMonths.slice(-months);
+
+  return lastMonths.map(item => ({
+    month: monthNames[item.month - 1],
+    amount: item.gross_amount || 0,
+  }));
+}
+
+// NEW: Get expense distribution by category
+export async function getExpenseDistribution() {
+  const supabase = createClient();
+
+  const { data: activeYear } = await supabase
+    .from('financial_years')
+    .select('*')
+    .eq('is_active', true)
+    .single();
+
+  if (!activeYear) return [];
+
+  const { data, error } = await supabase
+    .from('financial_transactions')
+    .select(`
+      category_id,
+      amount,
+      category:program_categories(name)
+    `)
+    .eq('year_id', activeYear.id)
+    .eq('transaction_type', 'expense');
+
+  if (error) {
+    console.error('Error fetching expense distribution:', error);
+    return [];
+  }
+
+  // Group by category
+  const categoryMap = new Map<string, { name: string; value: number }>();
+
+  data?.forEach(transaction => {
+    const categoryData = transaction.category as any;
+    const categoryName = (Array.isArray(categoryData) ? categoryData[0]?.name : categoryData?.name) || 'Lainnya';
+    const current = categoryMap.get(categoryName) || { name: categoryName, value: 0 };
+    current.value += transaction.amount || 0;
+    categoryMap.set(categoryName, current);
+  });
+
+  return Array.from(categoryMap.values());
+}
