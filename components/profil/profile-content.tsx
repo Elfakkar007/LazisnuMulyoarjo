@@ -25,15 +25,20 @@ interface StructureMember {
   photo_url: string | null;
   dusun: string | null;
   member_order: number | null;
+  bio: string | null;
+  motto: string | null;
+  social_links: any;
   created_at: string;
 }
 
 interface CorePosition {
+  id: string;
   position: string;
   members: StructureMember[];
 }
 
 interface DusunPosition {
+  id: string;
   dusun: string;
   members: StructureMember[];
 }
@@ -64,7 +69,7 @@ export function ProfileContent({ profile, structureData }: ProfileContentProps) 
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-6xl mx-auto space-y-8">
-        
+
         {/* A. About Organization */}
         <AboutSection profile={profile} />
 
@@ -79,7 +84,7 @@ export function ProfileContent({ profile, structureData }: ProfileContentProps) 
 
         {/* C. Contact Information */}
         <ContactSection profile={profile} />
-        
+
       </div>
     </div>
   );

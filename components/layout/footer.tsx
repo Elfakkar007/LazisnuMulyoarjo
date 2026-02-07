@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Mail, MapPin, Phone } from "lucide-react";
 
 interface FooterProps {
@@ -6,6 +7,7 @@ interface FooterProps {
     whatsapp_number: string | null;
     email: string | null;
     address: string | null;
+    logo_url?: string | null;
   };
 }
 
@@ -16,20 +18,30 @@ export function Footer({ organizationData }: FooterProps) {
     <footer className="bg-gray-900 text-gray-300">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          
+
           {/* Brand & About */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg">L</span>
-              </div>
+              {organizationData?.logo_url ? (
+                <Image
+                  src={organizationData.logo_url}
+                  alt="LazisNU Mulyoarjo Logo"
+                  width={40}
+                  height={40}
+                  className="object-contain rounded"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">L</span>
+                </div>
+              )}
               <div>
                 <h3 className="text-white font-bold text-lg">LazisNU</h3>
                 <p className="text-sm text-gray-400">Mulyoarjo</p>
               </div>
             </div>
             <p className="text-sm text-gray-400 leading-relaxed">
-              Lembaga Amil Zakat yang amanah, profesional, dan transparan dalam 
+              Lembaga Amil Zakat yang amanah, profesional, dan transparan dalam
               mengelola dana umat untuk kesejahteraan masyarakat Mulyoarjo.
             </p>
           </div>
@@ -38,26 +50,26 @@ export function Footer({ organizationData }: FooterProps) {
           <div className="space-y-4">
             <h4 className="text-white font-bold text-lg">Link Cepat</h4>
             <nav className="flex flex-col space-y-2">
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className="text-sm hover:text-emerald-400 transition-colors"
               >
                 Beranda
               </Link>
-              <Link 
-                href="/laporan" 
+              <Link
+                href="/laporan"
                 className="text-sm hover:text-emerald-400 transition-colors"
               >
                 Laporan Keuangan
               </Link>
-              <Link 
-                href="/kegiatan" 
+              <Link
+                href="/kegiatan"
                 className="text-sm hover:text-emerald-400 transition-colors"
               >
                 Kegiatan
               </Link>
-              <Link 
-                href="/profil" 
+              <Link
+                href="/profil"
                 className="text-sm hover:text-emerald-400 transition-colors"
               >
                 Profil Organisasi
@@ -77,11 +89,11 @@ export function Footer({ organizationData }: FooterProps) {
                   </p>
                 </div>
               )}
-              
+
               {organizationData?.whatsapp_number && (
                 <div className="flex items-center gap-3">
                   <Phone className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                  <a 
+                  <a
                     href={`https://wa.me/${organizationData.whatsapp_number.replace(/\D/g, '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -91,11 +103,11 @@ export function Footer({ organizationData }: FooterProps) {
                   </a>
                 </div>
               )}
-              
+
               {organizationData?.email && (
                 <div className="flex items-center gap-3">
                   <Mail className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                  <a 
+                  <a
                     href={`mailto:${organizationData.email}`}
                     className="text-sm hover:text-emerald-400 transition-colors"
                   >
@@ -114,14 +126,14 @@ export function Footer({ organizationData }: FooterProps) {
               © {currentYear} LazisNU Mulyoarjo. All rights reserved.
             </p>
             <div className="flex items-center gap-6">
-              <Link 
-                href="/privacy" 
+              <Link
+                href="/privacy"
                 className="text-sm text-gray-400 hover:text-emerald-400 transition-colors"
               >
                 Kebijakan Privasi
               </Link>
-              <Link 
-                href="/terms" 
+              <Link
+                href="/terms"
                 className="text-sm text-gray-400 hover:text-emerald-400 transition-colors"
               >
                 Syarat & Ketentuan

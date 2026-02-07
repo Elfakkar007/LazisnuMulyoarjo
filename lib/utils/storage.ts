@@ -89,7 +89,7 @@ export async function deleteFile(
     // Extract file path from URL
     const url = new URL(fileUrl);
     const pathParts = url.pathname.split(`/${BUCKET_NAME}/`);
-    
+
     if (pathParts.length < 2) {
       return { success: false, error: 'Invalid file URL' };
     }
@@ -130,7 +130,7 @@ export async function uploadArticleImage(file: File) {
 }
 
 export async function uploadStructurePhoto(file: File) {
-  return uploadImage(file, STORAGE_PATHS.STRUCTURE, 1);
+  return uploadImage(file, STORAGE_PATHS.STRUCTURE, 2);
 }
 
 // =====================================================
@@ -150,12 +150,12 @@ export function getOptimizedImageUrl(
   // If using Supabase Storage, we can add transformation params
   // Note: This requires Supabase Pro plan for image transformations
   // For free tier, return original URL
-  
+
   const { width, height, quality = 80 } = options || {};
-  
+
   // Example transformation URL (if using Pro plan):
   // return `${url}?width=${width}&height=${height}&quality=${quality}`;
-  
+
   return url;
 }
 
@@ -217,11 +217,11 @@ export function validateImageFile(file: File): {
   // Check file extension
   const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
   const extension = file.name.split('.').pop()?.toLowerCase();
-  
+
   if (!extension || !allowedExtensions.includes(extension)) {
-    return { 
-      valid: false, 
-      error: 'Format file harus JPG, PNG, GIF, atau WebP' 
+    return {
+      valid: false,
+      error: 'Format file harus JPG, PNG, GIF, atau WebP'
     };
   }
 

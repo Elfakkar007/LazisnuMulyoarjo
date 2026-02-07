@@ -25,8 +25,7 @@ import {
 // Import components
 import { GeneralInfoSection } from '@/components/admin/profile/general-info-section';
 import { ContactSection } from '@/components/admin/profile/contact-section';
-import { CoreStructureSection } from '@/components/admin/profile/core-structure-section';
-import { DusunStructureSection } from '@/components/admin/profile/dusun-structure-section';
+import { StructureCMSSection } from '@/components/admin/profile/structure-cms-section';
 
 interface OrganizationProfile {
     id: string;
@@ -240,15 +239,7 @@ export default function ProfileCMSPage() {
                     )}
 
                     {activeTab === 'structure' && (
-                        <div className="space-y-6">
-                            <CoreStructureSection
-                                corePositions={structureData.core}
-                            />
-
-                            <DusunStructureSection
-                                dusunPositions={structureData.dusun}
-                            />
-                        </div>
+                        <StructureCMSSection onDataChange={loadData} />
                     )}
                 </div>
             </div>

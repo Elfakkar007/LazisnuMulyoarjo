@@ -40,7 +40,7 @@ export default async function PublicLayout({
     <>
       {/* Desktop Navigation */}
       <DesktopNav
-        logoSrc="/assets/logo.ico"
+        logoSrc={organizationProfile?.logo_url || "/assets/logo.ico"}
         brandName="LazisNU"
         branchName="Mulyoarjo"
       />

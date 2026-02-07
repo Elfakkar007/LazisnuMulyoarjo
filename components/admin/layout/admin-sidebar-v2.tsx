@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -38,19 +39,43 @@ const menuItems = [
 
 export default function AdminSidebarV2({ onClose, isMobile = false }: AdminSidebarProps) {
   const pathname = usePathname();
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Fetch organization profile for logo
+    const fetchLogo = async () => {
+      try {
+        const { getOrganizationProfile } = await import('@/lib/api/client-admin');
+        const profile = await getOrganizationProfile();
+        if (profile?.logo_url) {
+          setLogoUrl(profile.logo_url);
+        }
+      } catch (error) {
+        console.error('Error fetching logo:', error);
+      }
+    };
+
+    fetchLogo();
+  }, []);
 
   return (
     <aside className="flex h-full w-64 flex-col bg-white border-r border-gray-200 shadow-sm">
       {/* Header with Logo */}
       <div className="flex h-16 items-center justify-between px-6 border-b border-gray-200">
         <Link href="/" className="flex items-center gap-3">
-          <Image
-            src="/logo.png"
-            alt="LazisNU Mulyoarjo Logo"
-            width={40}
-            height={40}
-            className="object-contain"
-          />
+          {logoUrl ? (
+            <Image
+              src={logoUrl}
+              alt="LazisNU Mulyoarjo Logo"
+              width={40}
+              height={40}
+              className="object-contain rounded"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center">
+              <span className="text-white font-bold text-lg">L</span>
+            </div>
+          )}
           <div className="flex flex-col">
             <span className="text-sm font-bold text-gray-900">LazisNU</span>
             <span className="text-xs text-gray-500">Mulyoarjo</span>

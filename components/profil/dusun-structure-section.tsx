@@ -12,10 +12,14 @@ interface StructureMember {
   photo_url: string | null;
   dusun: string | null;
   member_order: number | null;
+  bio: string | null;
+  motto: string | null;
+  social_links: any;
   created_at: string;
 }
 
 interface DusunPosition {
+  id: string;
   dusun: string;
   members: StructureMember[];
 }
@@ -95,21 +99,20 @@ export function DusunStructureSection({ dusunPositions }: DusunStructureSectionP
 
           return (
             <div
-              key={dusunPos.dusun}
+              key={dusunPos.id}
               className={`border-2 rounded-lg overflow-hidden transition-all ${colors.border}`}
             >
               {/* Header - Always visible */}
               <button
                 onClick={() => toggleDusun(dusunPos.dusun)}
-                className={`w-full flex items-center justify-between p-5 hover:opacity-90 transition-opacity ${
-                  isExpanded ? `bg-gradient-to-r ${colors.gradient}` : 'bg-white'
-                }`}
+                className={`w-full flex items-center justify-between p-5 hover:opacity-90 transition-opacity ${isExpanded ? `bg-gradient-to-r ${colors.gradient}` : 'bg-white'
+                  }`}
               >
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-full ${colors.bg} flex items-center justify-center`}>
                     <MapPin className={`w-6 h-6 ${colors.text}`} />
                   </div>
-                  
+
                   <div className="text-left">
                     <h4 className="text-lg font-bold text-gray-900">
                       Dusun {dusunPos.dusun}
@@ -202,9 +205,8 @@ function DusunMemberCard({ member, isCoordinator = false }: DusunMemberCardProps
   return (
     <div className="flex items-center gap-3">
       {/* Photo */}
-      <div className={`relative rounded-full overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300 shadow flex-shrink-0 ${
-        isCoordinator ? 'w-14 h-14' : 'w-12 h-12'
-      }`}>
+      <div className={`relative rounded-full overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300 shadow flex-shrink-0 ${isCoordinator ? 'w-14 h-14' : 'w-12 h-12'
+        }`}>
         {member.photo_url ? (
           <Image
             src={member.photo_url}
@@ -221,9 +223,8 @@ function DusunMemberCard({ member, isCoordinator = false }: DusunMemberCardProps
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className={`font-semibold text-gray-900 truncate ${
-          isCoordinator ? 'text-base' : 'text-sm'
-        }`}>
+        <p className={`font-semibold text-gray-900 truncate ${isCoordinator ? 'text-base' : 'text-sm'
+          }`}>
           {member.name}
         </p>
         {isCoordinator && (

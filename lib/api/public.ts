@@ -395,6 +395,7 @@ export async function getStructureData() {
   const core = positions
     .filter(p => p.is_core)
     .map(p => ({
+      id: p.id,
       position_data: p,
       position: p.position_name,
       members: (p.structure_members || []).sort((a: any, b: any) =>
@@ -405,6 +406,7 @@ export async function getStructureData() {
   const dusun = positions
     .filter(p => !p.is_core)
     .map(p => ({
+      id: p.id,
       position_data: p,
       dusun: p.position_name.replace('Koordinator ', ''),
       members: (p.structure_members || []).sort((a: any, b: any) =>
