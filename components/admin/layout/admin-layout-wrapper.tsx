@@ -11,14 +11,18 @@ export function AdminLayoutWrapper({ children }: { children: React.ReactNode }) 
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Desktop Sidebar - Always rendered, visibility controlled by CSS */}
-            <AdminSidebarV2
-                isCollapsed={isSidebarCollapsed}
-                setIsCollapsed={setIsSidebarCollapsed}
-            />
+            {/* Desktop Sidebar - Fixed position */}
+            <div className="hidden md:block">
+                <AdminSidebarV2
+                    isCollapsed={isSidebarCollapsed}
+                    setIsCollapsed={setIsSidebarCollapsed}
+                />
+            </div>
 
             {/* Mobile Menu - Only visible on mobile */}
-            <MobileAdminMenu />
+            <div className="md:hidden">
+                <MobileAdminMenu />
+            </div>
 
             {/* Topbar - Adjusts based on sidebar state */}
             <AdminTopbar isSidebarCollapsed={isSidebarCollapsed} />
@@ -26,11 +30,20 @@ export function AdminLayoutWrapper({ children }: { children: React.ReactNode }) 
             {/* Main Content - Adjusts margin based on sidebar state */}
             <main
                 className={cn(
-                    "min-h-screen pt-16 md:pt-20 p-4 md:p-6 transition-all duration-300 bg-gray-50",
-                    isSidebarCollapsed ? "md:ml-20" : "md:ml-64"
+                    "transition-all duration-300 ease-in-out",
+                    // Padding top for topbar
+                    "pt-16 md:pt-20",
+                    // Padding bottom for mobile menu
+                    "pb-20 md:pb-0",
+                    // Left margin for desktop sidebar
+                    "md:ml-64",
+                    // When collapsed, reduce margin
+                    isSidebarCollapsed && "md:ml-20",
+                    // Padding for content
+                    "p-4 md:p-6"
                 )}
             >
-                <div className="max-w-7xl mx-auto bg-transparent">
+                <div className="max-w-7xl mx-auto">
                     {children}
                 </div>
             </main>

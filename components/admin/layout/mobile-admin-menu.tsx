@@ -1,158 +1,154 @@
-// components/admin/layout/mobile-admin-menu.tsx
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import Image from 'next/image';
 import {
     LayoutDashboard,
-    FileText,
-    DollarSign,
-    Settings,
-    Package,
-    TrendingUp,
-    Image as ImageIcon,
     Building2,
+    TrendingUp,
+    Package,
+    DollarSign,
     FolderKanban,
-    Receipt,
+    BookOpen,
+    MoreHorizontal
 } from 'lucide-react';
-
-const navigation = [
-    {
-        name: 'Dashboard',
-        href: '/admin/dashboard',
-        icon: LayoutDashboard,
-    },
-    {
-        name: 'Profil Organisasi',
-        href: '/admin/profile',
-        icon: Building2,
-    },
-    {
-        name: 'Tahun Keuangan',
-        href: '/admin/financial-years',
-        icon: TrendingUp,
-    },
-    {
-        name: 'Distribusi Kaleng',
-        href: '/admin/kaleng-distribution',
-        icon: Package,
-    },
-    {
-        name: 'Pemasukan Bulanan',
-        href: '/admin/monthly-income',
-        icon: DollarSign,
-    },
-    {
-        name: 'Kategori Program',
-        href: '/admin/program-categories',
-        icon: Settings,
-    },
-    {
-        name: 'Program Kerja',
-        href: '/admin/programs',
-        icon: FolderKanban,
-    },
-    {
-        name: 'Rincian Pengeluaran',
-        href: '/admin/transactions',
-        icon: Receipt,
-    },
-    {
-        name: 'Artikel Kegiatan',
-        href: '/admin/articles',
-        icon: FileText,
-    },
-    {
-        name: 'Homepage Slides',
-        href: '/admin/homepage-slides',
-        icon: ImageIcon,
-    },
-];
+import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 export function MobileAdminMenu() {
-    const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
+    const [showMore, setShowMore] = useState(false);
+
+    const primaryMenuItems = [
+        {
+            icon: LayoutDashboard,
+            label: 'Dashboard',
+            href: '/admin'
+        },
+        {
+            icon: Building2,
+            label: 'Profil',
+            href: '/admin/profil-organisasi'
+        },
+        {
+            icon: TrendingUp,
+            label: 'Keuangan',
+            href: '/admin/tahun-keuangan'
+        },
+        {
+            icon: Package,
+            label: 'Kaleng',
+            href: '/admin/distribusi-kaleng'
+        }
+    ];
+
+    const moreMenuItems = [
+        {
+            icon: DollarSign,
+            label: 'Pemasukan',
+            href: '/admin/pemasukan-bulanan'
+        },
+        {
+            icon: FolderKanban,
+            label: 'Kategori',
+            href: '/admin/kategori-program'
+        },
+        {
+            icon: BookOpen,
+            label: 'Program',
+            href: '/admin/program-kerja'
+        }
+    ];
 
     return (
         <>
-            {/* Mobile Menu Button */}
-            <button
-                onClick={() => setIsOpen(true)}
-                className="md:hidden fixed top-4 left-4 z-40 p-2 bg-emerald-600 text-white rounded-lg shadow-lg"
-            >
-                <Menu className="w-6 h-6" />
-            </button>
-
-            {/* Mobile Overlay */}
-            {isOpen && (
+            {/* More Menu Overlay */}
+            {showMore && (
                 <div
-                    className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-                    onClick={() => setIsOpen(false)}
-                />
+                    className="fixed inset-0 bg-black/50 z-40"
+                    onClick={() => setShowMore(false)}
+                >
+                    <div
+                        className="absolute bottom-16 left-0 right-0 bg-white rounded-t-2xl p-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4" />
+                        <h3 className="font-semibold text-gray-900 mb-3">More Menu</h3>
+                        <div className="grid grid-cols-3 gap-3">
+                            {moreMenuItems.map((item) => {
+                                const Icon = item.icon;
+                                const isActive = pathname === item.href;
+
+                                return (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        onClick={() => setShowMore(false)}
+                                        className={cn(
+                                            "flex flex-col items-center gap-2 p-3 rounded-lg transition-colors",
+                                            isActive
+                                                ? "bg-emerald-50 text-emerald-600"
+                                                : "text-gray-600 hover:bg-gray-50"
+                                        )}
+                                    >
+                                        <Icon className="w-6 h-6" />
+                                        <span className="text-xs font-medium text-center">
+                                            {item.label}
+                                        </span>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
             )}
 
-            {/* Mobile Sidebar */}
-            <aside
-                className={cn(
-                    'md:hidden fixed top-0 left-0 h-screen w-64 bg-gradient-to-b from-emerald-800 to-emerald-900 text-white overflow-y-auto z-50 transition-transform duration-300',
-                    isOpen ? 'translate-x-0' : '-translate-x-full'
-                )}
-            >
-                {/* Header */}
-                <div className="p-4 border-b border-emerald-700 flex items-center justify-between">
-                    <Link href="/admin/dashboard" className="flex items-center space-x-3" onClick={() => setIsOpen(false)}>
-                        <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-md">
-                            <Image
-                                src="/assets/logo.ico"
-                                alt="Logo"
-                                width={32}
-                                height={32}
-                                className="rounded-md"
-                            />
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-bold">LazisNU</h1>
-                            <p className="text-xs text-emerald-200">Mulyoarjo</p>
-                        </div>
-                    </Link>
-
-                    <button
-                        onClick={() => setIsOpen(false)}
-                        className="p-2 hover:bg-emerald-700 rounded-lg transition-colors"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
-                {/* Navigation */}
-                <nav className="p-3 space-y-1">
-                    {navigation.map((item) => {
+            {/* Bottom Navigation */}
+            <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+                <div className="flex items-center justify-around px-2 py-2">
+                    {primaryMenuItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
 
                         return (
                             <Link
-                                key={item.name}
+                                key={item.href}
                                 href={item.href}
-                                onClick={() => setIsOpen(false)}
                                 className={cn(
-                                    'flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-all',
+                                    "flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[60px]",
                                     isActive
-                                        ? 'bg-white text-emerald-800 shadow-lg'
-                                        : 'text-emerald-100 hover:bg-emerald-700 hover:text-white'
+                                        ? "text-emerald-600"
+                                        : "text-gray-600 hover:text-gray-900"
                                 )}
                             >
-                                <Icon className={cn('w-5 h-5 flex-shrink-0', isActive && 'text-emerald-600')} />
-                                <span className="text-sm">{item.name}</span>
+                                <Icon className={cn(
+                                    "w-5 h-5",
+                                    isActive && "fill-emerald-100"
+                                )} />
+                                <span className="text-xs font-medium">
+                                    {item.label}
+                                </span>
                             </Link>
                         );
                     })}
-                </nav>
-            </aside>
+
+                    {/* More Button */}
+                    <button
+                        onClick={() => setShowMore(!showMore)}
+                        className={cn(
+                            "flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[60px]",
+                            showMore
+                                ? "text-emerald-600"
+                                : "text-gray-600 hover:text-gray-900"
+                        )}
+                    >
+                        <MoreHorizontal className="w-5 h-5" />
+                        <span className="text-xs font-medium">
+                            More
+                        </span>
+                    </button>
+                </div>
+            </nav>
         </>
     );
 }
