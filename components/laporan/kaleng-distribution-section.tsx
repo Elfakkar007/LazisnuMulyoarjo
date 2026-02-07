@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { motion } from "framer-motion";
 import { Package, Filter } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
@@ -138,11 +138,11 @@ export function KalengDistributionSection({ year, kalengData }: KalengDistributi
             <tr className="bg-gray-50 border-b border-gray-200">
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600"></th>
               {DUSUN.map((dusun) => (
-                <>
-                  <th key={`${dusun}-dist`} className="px-2 py-2 text-center text-xs font-semibold text-gray-600 border-l border-gray-200">Distribusi</th>
-                  <th key={`${dusun}-coll`} className="px-2 py-2 text-center text-xs font-semibold text-gray-600">Terkumpul</th>
-                  <th key={`${dusun}-not`} className="px-2 py-2 text-center text-xs font-semibold text-gray-600">Belum</th>
-                </>
+                <Fragment key={dusun}>
+                  <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 border-l border-gray-200">Distribusi</th>
+                  <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600">Terkumpul</th>
+                  <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600">Belum</th>
+                </Fragment>
               ))}
             </tr>
           </thead>
@@ -151,11 +151,11 @@ export function KalengDistributionSection({ year, kalengData }: KalengDistributi
               <tr key={month} className="border-b border-gray-200 hover:bg-gray-50">
                 <td className="px-4 py-3 font-semibold text-gray-900">{getMonthName(month)}</td>
                 {data.map((d) => (
-                  <>
-                    <td key={`${d.dusun}-dist`} className="px-2 py-3 text-center text-gray-700 border-l border-gray-200">{formatNumber(d.distributed)}</td>
-                    <td key={`${d.dusun}-coll`} className="px-2 py-3 text-center text-emerald-600 font-semibold">{formatNumber(d.collected)}</td>
-                    <td key={`${d.dusun}-not`} className="px-2 py-3 text-center text-orange-600">{formatNumber(d.notCollected)}</td>
-                  </>
+                  <Fragment key={d.dusun}>
+                    <td className="px-2 py-3 text-center text-gray-700 border-l border-gray-200">{formatNumber(d.distributed)}</td>
+                    <td className="px-2 py-3 text-center text-emerald-600 font-semibold">{formatNumber(d.collected)}</td>
+                    <td className="px-2 py-3 text-center text-orange-600">{formatNumber(d.notCollected)}</td>
+                  </Fragment>
                 ))}
               </tr>
             ))}

@@ -112,3 +112,39 @@ export async function getMonthlyIncome(yearId: string) {
 
   return data;
 }
+
+export async function getArticles() {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from('activity_articles')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching articles:', error);
+    return [];
+  }
+
+  return data;
+}
+
+export async function getArticleById(id: string) {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from('activity_articles')
+    .select(`
+      *,
+      images:activity_images(*)
+    `)
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching article:', error);
+    return null;
+  }
+
+  return data;
+}

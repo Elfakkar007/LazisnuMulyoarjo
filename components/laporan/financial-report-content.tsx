@@ -10,7 +10,7 @@ import { ProgramsSection } from "./programs-section";
 import { ExpenseDetailSection } from "./expense-detail-section";
 
 // Import fungsi API publik, BUKAN Server Action
-import { 
+import {
   getKalengDistribution,
   getMonthlyIncome,
   getPrograms,
@@ -61,7 +61,7 @@ export function FinancialReportContent({
         getMonthlyIncome(yearId),
         getPrograms(yearId),
         getProgramCategories(),
-        getFinancialTransactions(yearId),
+        getFinancialTransactions(yearId, undefined),
       ]);
 
       setKalengData(kaleng);
