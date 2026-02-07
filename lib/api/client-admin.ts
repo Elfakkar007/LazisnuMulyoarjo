@@ -148,3 +148,101 @@ export async function getArticleById(id: string) {
 
   return data;
 }
+// =====================================================
+// CLIENT ADMIN API - ADDITIONS
+// File: lib/api/client-admin.ts (ADD THESE FUNCTIONS)
+// =====================================================
+
+// ... (keep all existing functions)
+
+// NEW: Get organization profile (client-side)
+export async function getOrganizationProfile() {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from('organization_profile')
+    .select('*')
+    .single();
+
+  if (error) {
+    console.error('Error fetching organization profile:', error);
+    return null;
+  }
+
+  return data;
+}
+
+// NEW: Get structure positions
+export async function getStructurePositions() {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from('structure_positions')
+    .select('*')
+    .order('position_order', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching structure positions:', error);
+    return [];
+  }
+
+  return data;
+}
+
+// NEW: Get structure members
+export async function getStructureMembers() {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from('structure_members')
+    .select('*')
+    .order('member_order', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching structure members:', error);
+    return [];
+  }
+
+  return data;
+}
+
+// NEW: Get complete structure data for admin
+export async function getStructureData() {
+  const supabase = createClient();
+
+  const { data: positions, error: positionsError } = await supabase
+    .from('structure_positions')
+    .select(`
+      *,
+      structure_members (*)
+    `)
+    .order('position_order', { ascending: true });
+
+  if (positionsError) {
+    console.error('Error fetching structure data:', positionsError);
+    return { core: [], dusun: [] };
+  }
+
+  // Group by core and dusun
+  const core = positions
+    .filter(p => p.is_core)
+    .map(p => ({
+      position_data: p,
+      position: p.position_name,
+      members: (p.structure_members || []).sort((a: any, b: any) =>
+        (a.member_order || 0) - (b.member_order || 0)
+      ),
+    }));
+
+  const dusun = positions
+    .filter(p => !p.is_core)
+    .map(p => ({
+      position_data: p,
+      dusun: p.position_name.replace('Koordinator ', ''),
+      members: (p.structure_members || []).sort((a: any, b: any) =>
+        (a.member_order || 0) - (b.member_order || 0)
+      ),
+    }));
+
+  return { core, dusun };
+}

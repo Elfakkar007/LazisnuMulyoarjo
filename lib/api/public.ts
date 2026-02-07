@@ -14,7 +14,7 @@ type Tables = Database['public']['Tables'];
 
 export async function getHomepageSlides() {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
     .from('homepage_slides')
     .select('*')
@@ -31,7 +31,7 @@ export async function getHomepageSlides() {
 
 export async function getActiveFinancialYear() {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
     .from('financial_years')
     .select('*')
@@ -49,7 +49,7 @@ export async function getActiveFinancialYear() {
 export async function getCurrentMonthIncome() {
   const supabase = await createClient();
   const currentMonth = new Date().getMonth() + 1; // 1-12
-  
+
   const activeYear = await getActiveFinancialYear();
   if (!activeYear) return null;
 
@@ -70,7 +70,7 @@ export async function getCurrentMonthIncome() {
 
 export async function getTotalKalengDistributed() {
   const supabase = await createClient();
-  
+
   const activeYear = await getActiveFinancialYear();
   if (!activeYear) return 0;
 
@@ -90,7 +90,7 @@ export async function getTotalKalengDistributed() {
 
 export async function getMonthlyTrendData(yearId?: string) {
   const supabase = await createClient();
-  
+
   let targetYearId = yearId;
   if (!targetYearId) {
     const activeYear = await getActiveFinancialYear();
@@ -110,7 +110,7 @@ export async function getMonthlyTrendData(yearId?: string) {
   }
 
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
-  
+
   return data.map(item => ({
     month: monthNames[item.month - 1],
     amount: item.gross_amount,
@@ -119,7 +119,7 @@ export async function getMonthlyTrendData(yearId?: string) {
 
 export async function getRecentActivities(limit: number = 5) {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
     .from('activity_articles')
     .select('id, title, slug, category, excerpt, activity_date, location, featured_image_url')
@@ -141,7 +141,7 @@ export async function getRecentActivities(limit: number = 5) {
 
 export async function getOrganizationProfile() {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
     .from('organization_profile')
     .select('*')
@@ -155,41 +155,7 @@ export async function getOrganizationProfile() {
   return data;
 }
 
-export async function getStructureData() {
-  const supabase = await createClient();
-  
-  // Fetch positions with their members
-  const { data: positions, error: positionsError } = await supabase
-    .from('structure_positions')
-    .select(`
-      *,
-      structure_members (*)
-    `)
-    .order('position_order', { ascending: true });
 
-  if (positionsError) {
-    console.error('Error fetching structure data:', positionsError);
-    return { core: [], dusun: [] };
-  }
-
-  const core = positions
-    .filter(p => p.is_core)
-    .map(p => ({
-      position: p.position_name,
-      members: p.structure_members,
-    }));
-
-  const dusun = positions
-    .filter(p => !p.is_core)
-    .map(p => ({
-      dusun: p.position_name.replace('Koordinator ', ''),
-      members: p.structure_members.sort((a: any, b: any) => 
-        (a.member_order || 0) - (b.member_order || 0)
-      ),
-    }));
-
-  return { core, dusun };
-}
 
 // =====================================================
 // FINANCIAL REPORTS
@@ -197,7 +163,7 @@ export async function getStructureData() {
 
 export async function getFinancialYears() {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
     .from('financial_years')
     .select('*')
@@ -213,7 +179,7 @@ export async function getFinancialYears() {
 
 export async function getKalengDistribution(yearId: string, month?: number) {
   const supabase = await createClient();
-  
+
   let query = supabase
     .from('kaleng_distribution')
     .select('*')
@@ -235,7 +201,7 @@ export async function getKalengDistribution(yearId: string, month?: number) {
 
 export async function getMonthlyIncome(yearId: string) {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
     .from('monthly_income')
     .select('*')
@@ -252,7 +218,7 @@ export async function getMonthlyIncome(yearId: string) {
 
 export async function getProgramCategories() {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
     .from('program_categories')
     .select('*')
@@ -268,7 +234,7 @@ export async function getProgramCategories() {
 
 export async function getPrograms(yearId: string, categoryId?: string) {
   const supabase = await createClient();
-  
+
   let query = supabase
     .from('programs')
     .select(`
@@ -293,7 +259,7 @@ export async function getPrograms(yearId: string, categoryId?: string) {
 
 export async function getFinancialTransactions(yearId: string, categoryId?: string) {
   const supabase = await createClient();
-  
+
   let query = supabase
     .from('financial_transactions')
     .select(`
@@ -327,7 +293,7 @@ export async function getArticles(filters?: {
   offset?: number;
 }) {
   const supabase = await createClient();
-  
+
   let query = supabase
     .from('activity_articles')
     .select('id, title, slug, category, excerpt, activity_date, location, featured_image_url, published_at', { count: 'exact' })
@@ -363,7 +329,7 @@ export async function getArticles(filters?: {
 
 export async function getArticleBySlug(slug: string) {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
     .from('activity_articles')
     .select(`
@@ -384,7 +350,7 @@ export async function getArticleBySlug(slug: string) {
 
 export async function getRelatedArticles(category: string, currentSlug: string, limit: number = 3) {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
     .from('activity_articles')
     .select('id, title, slug, category, excerpt, activity_date, featured_image_url')
@@ -400,4 +366,68 @@ export async function getRelatedArticles(category: string, currentSlug: string, 
   }
 
   return data || [];
+}
+// =====================================================
+// UPDATED API - Public Data with Enhanced Structure
+// File: lib/api/public.ts (ADDITIONS/UPDATES)
+// =====================================================
+
+
+// UPDATED: getStructureData dengan data lengkap
+export async function getStructureData() {
+  const supabase = await createClient();
+
+  // Fetch positions with their members
+  const { data: positions, error: positionsError } = await supabase
+    .from('structure_positions')
+    .select(`
+      *,
+      structure_members (*)
+    `)
+    .order('position_order', { ascending: true });
+
+  if (positionsError) {
+    console.error('Error fetching structure data:', positionsError);
+    return { core: [], dusun: [] };
+  }
+
+  // Group by core and dusun
+  const core = positions
+    .filter(p => p.is_core)
+    .map(p => ({
+      position_data: p,
+      position: p.position_name,
+      members: (p.structure_members || []).sort((a: any, b: any) =>
+        (a.member_order || 0) - (b.member_order || 0)
+      ),
+    }));
+
+  const dusun = positions
+    .filter(p => !p.is_core)
+    .map(p => ({
+      position_data: p,
+      dusun: p.position_name.replace('Koordinator ', ''),
+      members: (p.structure_members || []).sort((a: any, b: any) =>
+        (a.member_order || 0) - (b.member_order || 0)
+      ),
+    }));
+
+  return { core, dusun };
+}
+
+// NEW: Get organization profile for admin
+export async function getOrganizationProfileForAdmin() {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('organization_profile')
+    .select('*')
+    .single();
+
+  if (error) {
+    console.error('Error fetching organization profile:', error);
+    return null;
+  }
+
+  return data;
 }

@@ -1,6 +1,6 @@
 // =====================================================
-// ADMIN SIDEBAR COMPONENT
-// File: components/admin/layout/admin-sidebar.tsx
+// UPDATED ADMIN SIDEBAR with Profile menu
+// File: components/admin/layout/admin-sidebar.tsx (REPLACE)
 // =====================================================
 
 'use client';
@@ -17,6 +17,7 @@ import {
   Package,
   TrendingUp,
   Image as ImageIcon,
+  Building2, // NEW: for Profile
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -25,6 +26,11 @@ const navigation = [
     name: 'Dashboard',
     href: '/admin/dashboard',
     icon: LayoutDashboard,
+  },
+  {
+    name: 'Profil Organisasi', // NEW
+    href: '/admin/profile',
+    icon: Building2,
   },
   {
     name: 'Tahun Keuangan',
@@ -52,6 +58,11 @@ const navigation = [
     icon: FileText,
   },
   {
+    name: 'Rincian Pengeluaran',
+    href: '/admin/transactions',
+    icon: FileText,
+  },
+  {
     name: 'Artikel Kegiatan',
     href: '/admin/articles',
     icon: Calendar,
@@ -60,11 +71,6 @@ const navigation = [
     name: 'Homepage Slides',
     href: '/admin/homepage-slides',
     icon: ImageIcon,
-  },
-  {
-    name: 'Struktur Organisasi',
-    href: '/admin/structure',
-    icon: Users,
   },
 ];
 

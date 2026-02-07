@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { Users, User } from "lucide-react";
+import { Users, User, Calendar, Quote, Instagram, Facebook, Linkedin } from "lucide-react";
 
 interface StructureMember {
   id: string;
@@ -11,11 +11,15 @@ interface StructureMember {
   photo_url: string | null;
   dusun: string | null;
   member_order: number | null;
+  bio: string | null;
+  motto: string | null;
+  social_links: any;
   created_at: string;
 }
 
 interface CorePosition {
   position: string;
+  position_data?: any;
   members: StructureMember[];
 }
 
@@ -43,6 +47,16 @@ export function CoreStructureSection({ corePositions }: CoreStructureSectionProp
           Struktur Organisasi
         </h2>
       </div>
+
+      {/* Show tenure period if available */}
+      {ketuaPosition?.position_data?.tenure_period && (
+        <div className="mb-6 flex items-center gap-2 text-gray-600">
+          <Calendar className="w-5 h-5" />
+          <span className="font-semibold">
+            Masa Bakti: {ketuaPosition.position_data.tenure_period}
+          </span>
+        </div>
+      )}
 
       <h3 className="text-xl font-bold text-gray-800 mb-6">Pengurus Inti</h3>
 
@@ -100,14 +114,18 @@ interface MemberCardProps {
 }
 
 function MemberCard({ member, position, isLarge = false }: MemberCardProps) {
+  const hasSocialLinks = member.social_links && (
+    member.social_links.instagram ||
+    member.social_links.facebook ||
+    member.social_links.linkedin
+  );
+
   return (
-    <div className={`bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-6 border border-emerald-200 hover:shadow-lg transition-shadow ${
-      isLarge ? 'md:p-8' : ''
-    }`}>
-      {/* Photo */}
-      <div className={`relative mx-auto rounded-full overflow-hidden bg-gradient-to-br from-emerald-200 to-teal-200 shadow-lg ${
-        isLarge ? 'w-32 h-32 md:w-40 md:h-40 mb-6' : 'w-24 h-24 mb-4'
+    <div className={`bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-6 border border-emerald-200 hover:shadow-lg transition-shadow ${isLarge ? 'md:p-8' : ''
       }`}>
+      {/* Photo */}
+      <div className={`relative mx-auto rounded-full overflow-hidden bg-gradient-to-br from-emerald-200 to-teal-200 shadow-lg ${isLarge ? 'w-32 h-32 md:w-40 md:h-40 mb-6' : 'w-24 h-24 mb-4'
+        }`}>
         {member.photo_url ? (
           <Image
             src={member.photo_url}
@@ -124,16 +142,72 @@ function MemberCard({ member, position, isLarge = false }: MemberCardProps) {
 
       {/* Info */}
       <div className="text-center">
-        <h4 className={`font-bold text-gray-900 mb-1 ${
-          isLarge ? 'text-xl md:text-2xl' : 'text-base'
-        }`}>
+        <h4 className={`font-bold text-gray-900 mb-1 ${isLarge ? 'text-xl md:text-2xl' : 'text-base'
+          }`}>
           {member.name}
         </h4>
-        <p className={`text-emerald-600 font-semibold ${
-          isLarge ? 'text-base md:text-lg' : 'text-sm'
-        }`}>
+        <p className={`text-emerald-600 font-semibold mb-2 ${isLarge ? 'text-base md:text-lg' : 'text-sm'
+          }`}>
           {position}
         </p>
+
+        {/* Bio */}
+        {member.bio && (
+          <p className="text-sm text-gray-600 mt-3 leading-relaxed">
+            {member.bio}
+          </p>
+        )}
+
+        {/* Motto */}
+        {member.motto && (
+          <div className="mt-3 pt-3 border-t border-emerald-200">
+            <div className="flex items-start gap-2">
+              <Quote className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-1" />
+              <p className="text-xs text-gray-600 italic">
+                "{member.motto}"
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Social Links */}
+        {hasSocialLinks && (
+          <div className="flex justify-center gap-3 mt-4">
+            {member.social_links.instagram && (
+              <a
+                href={member.social_links.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white hover:scale-110 transition-transform"
+                aria-label="Instagram"
+              >
+                <Instagram className="w-4 h-4" />
+              </a>
+            )}
+            {member.social_links.facebook && (
+              <a
+                href={member.social_links.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white hover:scale-110 transition-transform"
+                aria-label="Facebook"
+              >
+                <Facebook className="w-4 h-4" />
+              </a>
+            )}
+            {member.social_links.linkedin && (
+              <a
+                href={member.social_links.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center text-white hover:scale-110 transition-transform"
+                aria-label="LinkedIn"
+              >
+                <Linkedin className="w-4 h-4" />
+              </a>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Badge for Ketua */}

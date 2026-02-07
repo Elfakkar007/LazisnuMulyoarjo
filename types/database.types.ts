@@ -50,6 +50,7 @@ export interface Database {
           email: string | null
           address: string | null
           logo_url: string | null
+          google_maps_url: string | null
           updated_at: string
         }
         Insert: {
@@ -61,6 +62,7 @@ export interface Database {
           email?: string | null
           address?: string | null
           logo_url?: string | null
+          google_maps_url?: string | null
           updated_at?: string
         }
         Update: {
@@ -72,6 +74,7 @@ export interface Database {
           email?: string | null
           address?: string | null
           logo_url?: string | null
+          google_maps_url?: string | null
           updated_at?: string
         }
       }
@@ -81,6 +84,7 @@ export interface Database {
           position_name: string
           position_order: number
           is_core: boolean
+          tenure_period: string | null
           created_at: string
         }
         Insert: {
@@ -88,6 +92,7 @@ export interface Database {
           position_name: string
           position_order: number
           is_core?: boolean
+          tenure_period?: string | null
           created_at?: string
         }
         Update: {
@@ -95,6 +100,7 @@ export interface Database {
           position_name?: string
           position_order?: number
           is_core?: boolean
+          tenure_period?: string | null
           created_at?: string
         }
       }
@@ -106,6 +112,9 @@ export interface Database {
           photo_url: string | null
           dusun: string | null
           member_order: number | null
+          bio: string | null
+          motto: string | null
+          social_links: Json | null
           created_at: string
         }
         Insert: {
@@ -115,6 +124,9 @@ export interface Database {
           photo_url?: string | null
           dusun?: string | null
           member_order?: number | null
+          bio?: string | null
+          motto?: string | null
+          social_links?: Json | null
           created_at?: string
         }
         Update: {
@@ -124,6 +136,9 @@ export interface Database {
           photo_url?: string | null
           dusun?: string | null
           member_order?: number | null
+          bio?: string | null
+          motto?: string | null
+          social_links?: Json | null
           created_at?: string
         }
       }
