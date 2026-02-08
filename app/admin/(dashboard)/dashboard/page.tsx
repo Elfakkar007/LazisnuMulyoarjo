@@ -23,6 +23,20 @@ import {
 } from '@/lib/api/client-admin';
 import Link from 'next/link';
 
+interface ExpenseDistributionItem {
+  name: string;
+  value: number;
+}
+
+import type { PieLabelRenderProps } from 'recharts';
+
+const renderPieLabel = ({ name, percent }: PieLabelRenderProps) => {
+  const safePercent = typeof percent === 'number' ? percent : 0;
+  return `${name}: ${(safePercent * 100).toFixed(0)}%`;
+};
+
+
+
 // Colors for pie chart
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
@@ -55,7 +69,7 @@ export default function DashboardPage() {
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
   const [recentDrafts, setRecentDrafts] = useState<any[]>([]);
   const [incomeChart, setIncomeChart] = useState<any[]>([]);
-  const [expenseDistribution, setExpenseDistribution] = useState<any[]>([]);
+  const [expenseDistribution, setExpenseDistribution] = useState<ExpenseDistributionItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -206,7 +220,7 @@ export default function DashboardPage() {
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip
-                  formatter={(value: any) => formatCurrency(value)}
+                  formatter={(value: number | undefined) => formatCurrency(value ?? 0)}
                   labelStyle={{ color: '#374151' }}
                 />
                 <Line
@@ -234,7 +248,7 @@ export default function DashboardPage() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  label={renderPieLabel}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"

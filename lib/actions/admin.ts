@@ -43,9 +43,11 @@ export async function createStructurePosition(
 ) {
   const supabase = await createClient();
 
-  const { error } = await supabase
+  const { data: createdData, error } = await supabase
     .from('structure_positions')
-    .insert(data);
+    .insert(data)
+    .select()
+    .single();
 
   if (error) {
     console.error('Error creating structure position:', error);
@@ -54,7 +56,7 @@ export async function createStructurePosition(
 
   revalidatePath('/admin/structure');
   revalidatePath('/profil');
-  return { success: true };
+  return { success: true, data: createdData };
 }
 
 export async function updateStructurePosition(
