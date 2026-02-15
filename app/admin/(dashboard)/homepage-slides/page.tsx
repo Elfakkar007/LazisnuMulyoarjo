@@ -1,5 +1,5 @@
 // =====================================================
-// HOMEPAGE SLIDES MANAGEMENT PAGE
+// HOMEPAGE SLIDES MANAGEMENT PAGE - WITH IMAGE UPLOAD
 // File: app/admin/(dashboard)/homepage-slides/page.tsx
 // =====================================================
 
@@ -18,6 +18,7 @@ import {
     EyeOff,
     Image as ImageIcon,
     AlertCircle,
+    Upload,
 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import {
@@ -26,6 +27,8 @@ import {
     deleteHomepageSlide,
     reorderHomepageSlides,
 } from '@/lib/actions/admin';
+import { uploadSlideImage, deleteFile } from '@/lib/utils/storage';
+import Image from 'next/image';
 
 interface HomepageSlide {
     id: string;
@@ -33,6 +36,7 @@ interface HomepageSlide {
     title: string;
     detail: string | null;
     background_gradient: string | null;
+    image_url: string | null;
     link_url: string | null;
     slide_order: number;
     is_active: boolean;
@@ -70,19 +74,22 @@ const PREDEFINED_GRADIENTS = [
 const MAX_ACTIVE_SLIDES = 5;
 
 export default function HomepageSlidesPage() {
-    const [slides, setSlides] = useState < HomepageSlide[] > ([]);
+    const [slides, setSlides] = useState<HomepageSlide[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
-    const [editingId, setEditingId] = useState < string | null > (null);
+    const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         badge: '',
         title: '',
         detail: '',
         background_gradient: PREDEFINED_GRADIENTS[0].value,
+        image_url: '',
         link_url: '',
         is_active: true,
     });
     const [submitting, setSubmitting] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
 
     useEffect(() => {
         loadSlides();
@@ -105,6 +112,58 @@ export default function HomepageSlidesPage() {
         }
 
         setLoading(false);
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('File harus berupa gambar');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Ukuran file maksimal 5MB');
+            return;
+        }
+
+        setUploadingImage(true);
+
+        try {
+            const { url, error } = await uploadSlideImage(file);
+
+            if (error || !url) {
+                alert(`Gagal upload gambar: ${error}`);
+                return;
+            }
+
+            // If editing and there's an old image, delete it
+            if (editingId && formData.image_url) {
+                await deleteFile(formData.image_url);
+            }
+
+            setFormData({ ...formData, image_url: url });
+            setImagePreview(url);
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            alert('Terjadi kesalahan saat upload gambar');
+        } finally {
+            setUploadingImage(false);
+        }
+    };
+
+    const handleRemoveImage = async () => {
+        if (!formData.image_url) return;
+
+        if (confirm('Hapus gambar ini?')) {
+            // If it's an existing slide, just remove from form (don't delete from storage yet)
+            // Delete will happen on save
+            setFormData({ ...formData, image_url: '' });
+            setImagePreview(null);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -163,9 +222,11 @@ export default function HomepageSlidesPage() {
             title: slide.title,
             detail: slide.detail || '',
             background_gradient: slide.background_gradient || PREDEFINED_GRADIENTS[0].value,
+            image_url: slide.image_url || '',
             link_url: slide.link_url || '',
             is_active: slide.is_active,
         });
+        setImagePreview(slide.image_url);
         setShowForm(true);
     };
 
@@ -173,6 +234,12 @@ export default function HomepageSlidesPage() {
         if (!confirm(`Hapus slide "${slide.title}"?`)) return;
 
         setSubmitting(true);
+        
+        // Delete image if exists
+        if (slide.image_url) {
+            await deleteFile(slide.image_url);
+        }
+
         const result = await deleteHomepageSlide(slide.id);
 
         if (result.success) {
@@ -231,11 +298,13 @@ export default function HomepageSlidesPage() {
             title: '',
             detail: '',
             background_gradient: PREDEFINED_GRADIENTS[0].value,
+            image_url: '',
             link_url: '',
             is_active: true,
         });
         setEditingId(null);
         setShowForm(false);
+        setImagePreview(null);
     };
 
     const activeSlides = slides.filter(s => s.is_active);
@@ -259,7 +328,7 @@ export default function HomepageSlidesPage() {
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Homepage Slides</h1>
                     <p className="text-gray-600 mt-1">
-                        Kelola carousel homepage (max {MAX_ACTIVE_SLIDES} slide aktif)
+                        Kelola carousel homepage (max {MAX_ACTIVE_SLIDES} slide aktif) - Gunakan gambar 16:9 untuk hasil terbaik
                     </p>
                 </div>
                 <button
@@ -299,6 +368,67 @@ export default function HomepageSlidesPage() {
                     </h3>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Image Upload Section */}
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Gambar Slide (16:9 Ratio) - Rekomendasi: 1920x1080px
+                            </label>
+                            
+                            {imagePreview ? (
+                                <div className="relative w-full aspect-video rounded-lg overflow-hidden border-2 border-gray-200">
+                                    <Image
+                                        src={imagePreview}
+                                        alt="Preview"
+                                        fill
+                                        className="object-cover"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveImage}
+                                        className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition-colors"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        disabled={uploadingImage}
+                                        className="hidden"
+                                        id="image-upload"
+                                    />
+                                    <label
+                                        htmlFor="image-upload"
+                                        className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-emerald-500 transition-colors bg-gray-50"
+                                    >
+                                        {uploadingImage ? (
+                                            <div className="text-center">
+                                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-2"></div>
+                                                <p className="text-sm text-gray-600">Uploading...</p>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <Upload className="w-12 h-12 text-gray-400 mb-2" />
+                                                <p className="text-sm text-gray-600">
+                                                    Klik untuk upload gambar
+                                                </p>
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    PNG, JPG, WebP (max 5MB)
+                                                </p>
+                                            </>
+                                        )}
+                                    </label>
+                                </div>
+                            )}
+                            
+                            <p className="text-xs text-gray-500 mt-2">
+                                Jika tidak ada gambar, akan menggunakan background gradient sebagai fallback
+                            </p>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Badge */}
                             <div>
@@ -316,10 +446,10 @@ export default function HomepageSlidesPage() {
                                 />
                             </div>
 
-                            {/* Background Gradient */}
+                            {/* Background Gradient (Fallback) */}
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Background Gradient *
+                                    Background Gradient (Fallback) *
                                 </label>
                                 <select
                                     value={formData.background_gradient}
@@ -387,21 +517,40 @@ export default function HomepageSlidesPage() {
                             </p>
                         </div>
 
-                        {/* Preview Gradient */}
+                        {/* Preview */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Preview Gradient
+                                Preview Slide
                             </label>
-                            <div
-                                className={`h-24 rounded-lg bg-gradient-to-br ${formData.background_gradient} flex items-center justify-center text-white`}
-                            >
-                                <div className="text-center">
-                                    <span className="text-xs font-bold uppercase bg-white/20 px-3 py-1 rounded-full">
-                                        {formData.badge || 'BADGE'}
-                                    </span>
-                                    <p className="text-lg font-bold mt-2">
-                                        {formData.title || 'Judul Slide'}
-                                    </p>
+                            <div className="relative h-48 rounded-lg overflow-hidden">
+                                {imagePreview ? (
+                                    <>
+                                        <Image
+                                            src={imagePreview}
+                                            alt="Preview"
+                                            fill
+                                            className="object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
+                                    </>
+                                ) : (
+                                    <div className={`absolute inset-0 bg-gradient-to-br ${formData.background_gradient}`} />
+                                )}
+                                
+                                <div className="relative h-full flex items-center p-6">
+                                    <div>
+                                        <span className="inline-block text-xs font-bold uppercase bg-white/20 px-3 py-1 rounded-full text-white mb-2">
+                                            {formData.badge || 'BADGE'}
+                                        </span>
+                                        <p className="text-xl font-bold text-white drop-shadow-lg">
+                                            {formData.title || 'Judul Slide'}
+                                        </p>
+                                        {formData.detail && (
+                                            <p className="text-sm text-white/90 mt-2">
+                                                {formData.detail}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -424,7 +573,7 @@ export default function HomepageSlidesPage() {
                         <div className="flex gap-2 pt-4">
                             <button
                                 type="submit"
-                                disabled={submitting}
+                                disabled={submitting || uploadingImage}
                                 className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
                             >
                                 {submitting ? 'Menyimpan...' : editingId ? 'Update' : 'Simpan'}
@@ -505,6 +654,9 @@ export default function HomepageSlidesPage() {
             <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
                 <h4 className="text-sm font-bold text-blue-900 mb-2">Petunjuk:</h4>
                 <ul className="text-xs text-blue-800 space-y-1">
+                    <li>• Upload gambar dengan rasio 16:9 (rekomendasi: 1920x1080px) untuk hasil terbaik</li>
+                    <li>• Gambar akan otomatis di-crop dan di-scale untuk fit container</li>
+                    <li>• Jika tidak ada gambar, akan menggunakan background gradient sebagai fallback</li>
                     <li>• Drag & drop slide aktif untuk mengubah urutan</li>
                     <li>• Maksimal {MAX_ACTIVE_SLIDES} slide dapat aktif bersamaan</li>
                     <li>• Badge: teks pendek untuk kategori (mis: KEGIATAN, SOSIAL)</li>
@@ -531,29 +683,62 @@ interface SlideCardProps {
 function SlideCard({ slide, onEdit, onDelete, onToggleActive, disabled }: SlideCardProps) {
     return (
         <div
-            className={`bg-gradient-to-br ${slide.background_gradient} rounded-lg p-4 border-2 ${slide.is_active ? 'border-emerald-300' : 'border-gray-300'
+            className={`rounded-lg overflow-hidden border-2 ${slide.is_active ? 'border-emerald-300' : 'border-gray-300'
                 } transition-all`}
         >
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-4 p-4">
                 {/* Drag Handle */}
                 {slide.is_active && (
-                    <div className="cursor-move text-white/60 hover:text-white/90 transition-colors pt-1">
+                    <div className="cursor-move text-gray-400 hover:text-gray-600 transition-colors pt-1">
                         <GripVertical className="w-6 h-6" />
                     </div>
                 )}
 
-                {/* Content Preview */}
-                <div className="flex-1 text-white">
-                    <span className="inline-block text-xs font-bold uppercase bg-white/20 px-3 py-1 rounded-full mb-2">
+                {/* Preview Image/Gradient */}
+                <div className="relative w-48 aspect-video rounded overflow-hidden flex-shrink-0">
+                    {slide.image_url ? (
+                        <>
+                            <Image
+                                src={slide.image_url}
+                                alt={slide.title}
+                                fill
+                                className="object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
+                        </>
+                    ) : (
+                        <div className={`absolute inset-0 bg-gradient-to-br ${slide.background_gradient}`} />
+                    )}
+                    
+                    <div className="absolute inset-0 flex items-center p-3">
+                        <div>
+                            <span className="inline-block text-[10px] font-bold uppercase bg-white/20 px-2 py-0.5 rounded-full text-white">
+                                {slide.badge}
+                            </span>
+                            <p className="text-xs font-bold text-white mt-1 line-clamp-2">
+                                {slide.title}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Content Info */}
+                <div className="flex-1">
+                    <span className="inline-block text-xs font-bold uppercase bg-emerald-100 text-emerald-700 px-2 py-1 rounded mb-2">
                         {slide.badge}
                     </span>
-                    <h4 className="text-lg font-bold mb-1">{slide.title}</h4>
+                    <h4 className="text-base font-bold text-gray-900 mb-1">{slide.title}</h4>
                     {slide.detail && (
-                        <p className="text-sm opacity-90">{slide.detail}</p>
+                        <p className="text-sm text-gray-600">{slide.detail}</p>
                     )}
                     {slide.link_url && (
-                        <p className="text-xs opacity-75 mt-2">
-                            Link: {slide.link_url}
+                        <p className="text-xs text-gray-500 mt-2">
+                            🔗 {slide.link_url}
+                        </p>
+                    )}
+                    {slide.image_url && (
+                        <p className="text-xs text-emerald-600 mt-1">
+                            📸 Menggunakan gambar
                         </p>
                     )}
                 </div>
@@ -564,8 +749,8 @@ function SlideCard({ slide, onEdit, onDelete, onToggleActive, disabled }: SlideC
                         onClick={() => onToggleActive(slide)}
                         disabled={disabled}
                         className={`p-2 rounded-lg transition-colors ${slide.is_active
-                                ? 'bg-white/20 hover:bg-white/30 text-white'
-                                : 'bg-gray-600 hover:bg-gray-700 text-white'
+                                ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'
+                                : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
                             }`}
                         title={slide.is_active ? 'Nonaktifkan' : 'Aktifkan'}
                     >
@@ -578,7 +763,7 @@ function SlideCard({ slide, onEdit, onDelete, onToggleActive, disabled }: SlideC
                     <button
                         onClick={() => onEdit(slide)}
                         disabled={disabled}
-                        className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                        className="p-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors"
                         title="Edit"
                     >
                         <Edit className="w-4 h-4" />
@@ -586,7 +771,7 @@ function SlideCard({ slide, onEdit, onDelete, onToggleActive, disabled }: SlideC
                     <button
                         onClick={() => onDelete(slide)}
                         disabled={disabled}
-                        className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                        className="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
                         title="Hapus"
                     >
                         <Trash2 className="w-4 h-4" />

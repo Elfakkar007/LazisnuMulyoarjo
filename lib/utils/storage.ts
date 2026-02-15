@@ -1,6 +1,7 @@
 // =====================================================
-// SUPABASE STORAGE HELPERS
+// SUPABASE STORAGE HELPERS - FIXED VERSION
 // For uploading and managing files in Supabase Storage
+// FIXES: Filename sanitization untuk menghindari error karakter khusus
 // =====================================================
 
 import { createClient } from '@/utils/supabase/client';
@@ -16,7 +17,49 @@ export const STORAGE_PATHS = {
 } as const;
 
 // =====================================================
-// UPLOAD FUNCTIONS
+// FILENAME SANITIZATION - NEW FUNCTION
+// =====================================================
+
+/**
+ * Sanitize filename untuk menghindari error di Supabase Storage
+ * Mengatasi masalah:
+ * - Spasi dalam nama file
+ * - Karakter khusus (!, @, #, $, dll)
+ * - Multiple dots (...)
+ * - Nama file terlalu panjang
+ */
+function sanitizeFilename(filename: string): string {
+  // Get file extension
+  const lastDotIndex = filename.lastIndexOf('.');
+  const name = lastDotIndex !== -1 ? filename.substring(0, lastDotIndex) : filename;
+  const ext = lastDotIndex !== -1 ? filename.substring(lastDotIndex) : '';
+  
+  // Sanitize name part
+  let sanitized = name
+    .toLowerCase()                    // Convert to lowercase
+    .replace(/\s+/g, '-')            // Replace spaces with hyphens
+    .replace(/[^a-z0-9-_]/g, '')     // Remove special characters, keep only alphanumeric, hyphens, underscores
+    .replace(/-+/g, '-')             // Replace multiple hyphens with single hyphen
+    .replace(/^-+|-+$/g, '');        // Remove leading/trailing hyphens
+  
+  // Limit length (max 50 chars for name part)
+  if (sanitized.length > 50) {
+    sanitized = sanitized.substring(0, 50);
+  }
+  
+  // If empty after sanitization, use timestamp
+  if (!sanitized) {
+    sanitized = Date.now().toString();
+  }
+  
+  // Clean extension (remove extra dots)
+  const cleanExt = ext.toLowerCase().replace(/\.+/g, '.');
+  
+  return sanitized + cleanExt;
+}
+
+// =====================================================
+// UPLOAD FUNCTIONS - UPDATED
 // =====================================================
 
 export async function uploadFile(
@@ -27,10 +70,20 @@ export async function uploadFile(
   const supabase = createClient();
 
   try {
-    // Generate unique filename if not provided
+    // Generate unique filename with sanitization
     const timestamp = Date.now();
-    const finalFileName = fileName || `${timestamp}-${file.name}`;
+    const sanitizedOriginalName = sanitizeFilename(file.name);
+    const finalFileName = fileName 
+      ? sanitizeFilename(fileName)
+      : `${timestamp}-${sanitizedOriginalName}`;
+    
     const filePath = `${path}/${finalFileName}`;
+
+    console.log('Uploading file:', {
+      original: file.name,
+      sanitized: finalFileName,
+      path: filePath
+    });
 
     // Upload file
     const { data, error } = await supabase.storage
@@ -49,6 +102,8 @@ export async function uploadFile(
     const { data: { publicUrl } } = supabase.storage
       .from(BUCKET_NAME)
       .getPublicUrl(filePath);
+
+    console.log('Upload successful:', publicUrl);
 
     return { url: publicUrl, error: null };
   } catch (error) {
@@ -96,6 +151,8 @@ export async function deleteFile(
 
     const filePath = pathParts[1];
 
+    console.log('Deleting file:', filePath);
+
     // Delete file
     const { error } = await supabase.storage
       .from(BUCKET_NAME)
@@ -122,7 +179,7 @@ export async function uploadLogo(file: File) {
 }
 
 export async function uploadSlideImage(file: File) {
-  return uploadImage(file, STORAGE_PATHS.SLIDES, 2);
+  return uploadImage(file, STORAGE_PATHS.SLIDES, 5); // Increased to 5MB for slides
 }
 
 export async function uploadArticleImage(file: File) {
@@ -215,13 +272,13 @@ export function validateImageFile(file: File): {
   }
 
   // Check file extension
-  const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+  const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'jfif'];
   const extension = file.name.split('.').pop()?.toLowerCase();
 
   if (!extension || !allowedExtensions.includes(extension)) {
     return {
       valid: false,
-      error: 'Format file harus JPG, PNG, GIF, atau WebP'
+      error: 'Format file harus JPG, JPEG, PNG, GIF, WEBP, atau JFIF'
     };
   }
 
@@ -239,7 +296,7 @@ export async function setupStorageBucket() {
   const { data, error } = await supabase.storage.createBucket(BUCKET_NAME, {
     public: true,
     fileSizeLimit: 5242880, // 5MB
-    allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
+    allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/jfif'],
   });
 
   if (error && error.message !== 'Bucket already exists') {

@@ -1,7 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mail, Phone, MapPin, ExternalLink } from "lucide-react";
+import { Mail, Phone, MapPin, ExternalLink, Instagram, Music, Facebook, Youtube, Twitter } from "lucide-react";
+
+interface SocialMediaLinks {
+  instagram?: string;
+  tiktok?: string;
+  facebook?: string;
+  youtube?: string;
+  twitter?: string;
+}
 
 interface OrganizationProfile {
   id: string;
@@ -12,6 +20,8 @@ interface OrganizationProfile {
   email: string | null;
   address: string | null;
   logo_url: string | null;
+  google_maps_url: string | null;
+  social_media_links: SocialMediaLinks | null;
   updated_at: string;
 }
 
@@ -31,11 +41,61 @@ export function ContactSection({ profile }: ContactSectionProps) {
 
   const emailUrl = profile.email ? `mailto:${profile.email}` : null;
 
-  // Optional: Google Maps URL (you can customize this)
-  // Example: Extract coordinates or use address search
-  const mapsUrl = profile.address
+  // Use google_maps_url from profile, or fallback to search
+  const mapsUrl = profile.google_maps_url || (profile.address
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile.address)}`
-    : null;
+    : null);
+
+  const socialMedia = profile.social_media_links || {};
+
+  // Social media config
+  const socialMediaList = [
+    {
+      name: 'Instagram',
+      icon: Instagram,
+      url: socialMedia.instagram,
+      color: 'from-pink-50 to-purple-50',
+      borderColor: 'border-pink-200',
+      iconBg: 'bg-gradient-to-br from-pink-500 to-purple-600',
+      hoverColor: 'group-hover:text-pink-600',
+    },
+    {
+      name: 'TikTok',
+      icon: Music,
+      url: socialMedia.tiktok,
+      color: 'from-slate-50 to-gray-50',
+      borderColor: 'border-slate-200',
+      iconBg: 'bg-black',
+      hoverColor: 'group-hover:text-slate-900',
+    },
+    {
+      name: 'Facebook',
+      icon: Facebook,
+      url: socialMedia.facebook,
+      color: 'from-blue-50 to-indigo-50',
+      borderColor: 'border-blue-200',
+      iconBg: 'bg-blue-600',
+      hoverColor: 'group-hover:text-blue-600',
+    },
+    {
+      name: 'YouTube',
+      icon: Youtube,
+      url: socialMedia.youtube,
+      color: 'from-red-50 to-rose-50',
+      borderColor: 'border-red-200',
+      iconBg: 'bg-red-600',
+      hoverColor: 'group-hover:text-red-600',
+    },
+    {
+      name: 'Twitter / X',
+      icon: Twitter,
+      url: socialMedia.twitter,
+      color: 'from-sky-50 to-blue-50',
+      borderColor: 'border-sky-200',
+      iconBg: 'bg-sky-500',
+      hoverColor: 'group-hover:text-sky-600',
+    },
+  ].filter(item => item.url); // Only show social media that have URLs
 
   return (
     <motion.div
@@ -135,7 +195,7 @@ export function ContactSection({ profile }: ContactSectionProps) {
                   {profile.address}
                 </p>
                 
-                {/* Optional: Google Maps Link */}
+                {/* Google Maps Link */}
                 {mapsUrl && (
                   <a
                     href={mapsUrl}
@@ -153,32 +213,49 @@ export function ContactSection({ profile }: ContactSectionProps) {
           </motion.div>
         )}
 
-        {/* Optional: Embedded Google Maps */}
-        {/* Uncomment this section if you want to embed a map */}
-        {/* You'll need to get the exact coordinates or embed URL from Google Maps */}
-        {/*
-        {mapsUrl && (
+        {/* Social Media Links */}
+        {socialMediaList.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9 }}
-            className="rounded-xl overflow-hidden border border-gray-200 shadow-md"
+            className="pt-6 border-t border-gray-200"
           >
-            <iframe
-              src="YOUR_GOOGLE_MAPS_EMBED_URL"
-              width="100%"
-              height="400"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              Ikuti Kami
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {socialMediaList.map((social, index) => {
+                const Icon = social.icon;
+                return (
+                  <a
+                    key={social.name}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center gap-3 p-4 bg-gradient-to-r ${social.color} rounded-lg border ${social.borderColor} hover:shadow-md transition-all group`}
+                  >
+                    <div className={`flex-shrink-0 w-10 h-10 ${social.iconBg} rounded-full flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                      <Icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-bold text-gray-900 ${social.hoverColor} transition-colors truncate`}>
+                        {social.name}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        Kunjungi halaman kami
+                      </p>
+                    </div>
+                    <ExternalLink className={`w-4 h-4 text-gray-400 ${social.hoverColor} transition-colors flex-shrink-0`} />
+                  </a>
+                );
+              })}
+            </div>
           </motion.div>
         )}
-        */}
 
         {/* No contact info available */}
-        {!profile.whatsapp_number && !profile.email && !profile.address && (
+        {!profile.whatsapp_number && !profile.email && !profile.address && socialMediaList.length === 0 && (
           <div className="text-center py-12">
             <Phone className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500">Belum ada informasi kontak</p>

@@ -46,6 +46,7 @@ export interface Database {
           vision: string
           mission: string
           about: string | null
+          social_media_links: Json | null
           whatsapp_number: string | null
           email: string | null
           address: string | null
@@ -58,6 +59,7 @@ export interface Database {
           vision: string
           mission: string
           about?: string | null
+          social_media_links?: Json | null
           whatsapp_number?: string | null
           email?: string | null
           address?: string | null
@@ -70,6 +72,7 @@ export interface Database {
           vision?: string
           mission?: string
           about?: string | null
+          social_media_links?: Json | null
           whatsapp_number?: string | null
           email?: string | null
           address?: string | null
@@ -460,6 +463,7 @@ export interface Database {
           title: string
           detail: string | null
           background_gradient: string | null
+          image_url: string | null
           link_url: string | null
           slide_order: number
           is_active: boolean
@@ -471,6 +475,7 @@ export interface Database {
           title: string
           detail?: string | null
           background_gradient?: string | null
+          image_url?: string | null
           link_url?: string | null
           slide_order: number
           is_active?: boolean
@@ -482,6 +487,7 @@ export interface Database {
           title?: string
           detail?: string | null
           background_gradient?: string | null
+          image_url?: string | null
           link_url?: string | null
           slide_order?: number
           is_active?: boolean

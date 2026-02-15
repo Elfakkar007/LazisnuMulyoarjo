@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Calendar, MapPin } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface Slide {
   id: string;
@@ -11,6 +12,7 @@ interface Slide {
   title: string;
   detail: string | null;
   background_gradient: string | null;
+  image_url: string | null;
   link_url: string | null;
 }
 
@@ -21,6 +23,8 @@ interface HeroSectionProps {
 export function HeroSection({ slides }: HeroSectionProps) {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   const nextSlide = useCallback(() => {
     setDirection(1);
@@ -36,6 +40,33 @@ export function HeroSection({ slides }: HeroSectionProps) {
     setDirection(index > current ? 1 : -1);
     setCurrent(index);
   }, [current]);
+
+  // Handle touch swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      nextSlide();
+    }
+    if (isRightSwipe) {
+      prevSlide();
+    }
+
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
 
   // Auto-play carousel
   useEffect(() => {
@@ -82,7 +113,12 @@ export function HeroSection({ slides }: HeroSectionProps) {
   };
 
   return (
-    <section className="relative overflow-hidden bg-gray-900 h-[500px] md:h-[600px]">
+    <section 
+      className="relative overflow-hidden bg-gray-900 h-[500px] md:h-[600px]"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       <AnimatePresence initial={false} custom={direction}>
         <motion.div
           key={current}
@@ -95,15 +131,38 @@ export function HeroSection({ slides }: HeroSectionProps) {
             x: { type: "spring", stiffness: 300, damping: 30 },
             opacity: { duration: 0.2 },
           }}
-          className={`absolute inset-0 bg-gradient-to-br ${bgGradient}`}
+          className="absolute inset-0"
         >
-          {/* Decorative Elements */}
-          <div className="absolute -top-10 -right-10 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 left-10 w-48 h-48 bg-white/10 rounded-full blur-2xl" />
-          <div className="absolute top-20 left-1/3 w-32 h-32 bg-white/5 rounded-full blur-xl" />
+          {/* Background - Image or Gradient */}
+          {slide.image_url ? (
+            <>
+              {/* Background Image with 16:9 ratio */}
+              <div className="absolute inset-0">
+                <Image
+                  src={slide.image_url}
+                  alt={slide.title}
+                  fill
+                  priority
+                  className="object-cover"
+                  sizes="100vw"
+                />
+              </div>
+              
+              {/* Dark overlay for better text readability */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70 md:bg-gradient-to-r md:from-black/70 md:via-black/50 md:to-transparent" />
+            </>
+          ) : (
+            /* Fallback to gradient if no image */
+            <div className={`absolute inset-0 bg-gradient-to-br ${bgGradient}`}>
+              {/* Decorative Elements for gradient backgrounds */}
+              <div className="absolute -top-10 -right-10 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
+              <div className="absolute bottom-20 left-10 w-48 h-48 bg-white/10 rounded-full blur-2xl" />
+              <div className="absolute top-20 left-1/3 w-32 h-32 bg-white/5 rounded-full blur-xl" />
+            </div>
+          )}
 
-          {/* Grid Pattern */}
-          <svg className="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 800 600" preserveAspectRatio="none">
+          {/* Grid Pattern Overlay (subtle) */}
+          <svg className="absolute inset-0 w-full h-full opacity-5" viewBox="0 0 800 600" preserveAspectRatio="none">
             <defs>
               <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
                 <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.5" />
@@ -113,9 +172,9 @@ export function HeroSection({ slides }: HeroSectionProps) {
           </svg>
 
           {/* Content */}
-          <div className="relative h-full flex items-center">
-            <div className="container mx-auto px-4">
-              <div className="max-w-3xl">
+          <div className="relative h-full flex items-center z-10">
+            <div className="container mx-auto px-6 md:px-20 lg:px-24">
+              <div className="max-w-3xl mx-auto md:mx-0 text-center md:text-left">
                 <motion.span
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -129,7 +188,7 @@ export function HeroSection({ slides }: HeroSectionProps) {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-4"
+                  className="text-3xl md:text-6xl font-extrabold text-white leading-tight mb-4 drop-shadow-lg"
                 >
                   {slide.title}
                 </motion.h1>
@@ -139,22 +198,19 @@ export function HeroSection({ slides }: HeroSectionProps) {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="flex flex-wrap items-center gap-4 text-white/90 text-sm md:text-base mb-6"
+                    className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-white/90 text-sm md:text-base mb-6"
                   >
                     {date && (
-                      <span className="flex items-center gap-2">
+                      <span className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-3 py-1.5 rounded-full">
                         <Calendar className="w-4 h-4" />
                         {date}
                       </span>
                     )}
                     {location && (
-                      <>
-                        <span className="opacity-50">•</span>
-                        <span className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4" />
-                          {location}
-                        </span>
-                      </>
+                      <span className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                        <MapPin className="w-4 h-4" />
+                        {location}
+                      </span>
                     )}
                   </motion.div>
                 )}
@@ -180,12 +236,12 @@ export function HeroSection({ slides }: HeroSectionProps) {
         </motion.div>
       </AnimatePresence>
 
-      {/* Navigation Arrows */}
+      {/* Navigation Arrows - Hidden on Mobile */}
       {slides.length > 1 && (
         <>
           <button
             onClick={prevSlide}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-full p-3 transition-all"
+            className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-full p-3 transition-all hover:scale-110"
             aria-label="Previous slide"
           >
             <ChevronLeft className="w-6 h-6" />
@@ -193,7 +249,7 @@ export function HeroSection({ slides }: HeroSectionProps) {
 
           <button
             onClick={nextSlide}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-full p-3 transition-all"
+            className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-full p-3 transition-all hover:scale-110"
             aria-label="Next slide"
           >
             <ChevronRight className="w-6 h-6" />
