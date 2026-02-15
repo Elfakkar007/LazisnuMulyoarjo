@@ -1,3 +1,8 @@
+// =====================================================
+// GENERAL INFO SECTION - FINAL FIXED VERSION
+// File: components/admin/profile/general-info-section.tsx
+// =====================================================
+
 'use client';
 
 import { useState } from 'react';
@@ -16,6 +21,7 @@ interface OrganizationProfile {
     logo_url: string | null;
     google_maps_url: string | null;
     updated_at: string;
+    // Note: social_media_links tidak digunakan di section ini
 }
 
 interface GeneralInfoSectionProps {

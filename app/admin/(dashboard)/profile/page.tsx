@@ -1,5 +1,5 @@
 // =====================================================
-// PROFILE CMS PAGE
+// PROFILE CMS PAGE - FINAL FIXED VERSION
 // File: app/admin/(dashboard)/profile/page.tsx
 // =====================================================
 
@@ -27,6 +27,15 @@ import { GeneralInfoSection } from '@/components/admin/profile/general-info-sect
 import { ContactSection } from '@/components/admin/profile/contact-section';
 import { StructureCMSSection } from '@/components/admin/profile/structure-cms-section';
 
+// Use the same interface as ContactSection to avoid conflicts
+interface SocialMediaLinks {
+    instagram?: string;
+    tiktok?: string;
+    facebook?: string;
+    youtube?: string;
+    twitter?: string;
+}
+
 interface OrganizationProfile {
     id: string;
     vision: string;
@@ -37,6 +46,7 @@ interface OrganizationProfile {
     address: string | null;
     logo_url: string | null;
     google_maps_url: string | null;
+    social_media_links: SocialMediaLinks | null;  // Changed from optional to required
     updated_at: string;
 }
 
@@ -92,10 +102,18 @@ export default function ProfileCMSPage() {
         setSuccess(null);
 
         try {
-            const result = await updateOrganizationProfile({
+            // Convert social_media_links to JSON format for database
+            const dataToSave: any = {
                 id: profile.id,
                 ...updatedProfile,
-            });
+            };
+
+            // Ensure social_media_links is properly formatted as JSON
+            if (updatedProfile.social_media_links !== undefined) {
+                dataToSave.social_media_links = updatedProfile.social_media_links as any;
+            }
+
+            const result = await updateOrganizationProfile(dataToSave);
 
             if (result.success) {
                 setSuccess('Profil berhasil diperbarui!');

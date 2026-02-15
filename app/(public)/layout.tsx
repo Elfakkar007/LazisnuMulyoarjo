@@ -46,7 +46,7 @@ export default async function PublicLayout({
       />
 
       {/* Main Content */}
-      <main className="pb-20 md:pb-0 min-h-screen">
+      <main className="pt-0 md:pt-16 pb-20 md:pb-0 min-h-screen">
         {children}
       </main>
 

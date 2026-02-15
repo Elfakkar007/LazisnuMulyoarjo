@@ -3,6 +3,14 @@
 import { motion } from "framer-motion";
 import { Eye, Target } from "lucide-react";
 
+interface SocialMediaLinks {
+  instagram?: string;
+  tiktok?: string;
+  facebook?: string;
+  youtube?: string;
+  twitter?: string;
+}
+
 interface OrganizationProfile {
   id: string;
   vision: string;
@@ -12,6 +20,8 @@ interface OrganizationProfile {
   email: string | null;
   address: string | null;
   logo_url: string | null;
+  google_maps_url: string | null;
+  social_media_links: SocialMediaLinks | null;
   updated_at: string;
 }
 
