@@ -348,8 +348,8 @@ export default function TransactionsPage() {
                     {row.transaction_type === 'income' ? (
                       <input
                         type="number"
-                        value={row.amount}
-                        onChange={(e) => updateRow(row.id, 'amount', parseFloat(e.target.value) || 0)}
+                        value={row.amount || ''}
+                        onChange={(e) => updateRow(row.id, 'amount', e.target.value ? parseFloat(e.target.value) : 0)}
                         className="w-full px-2 py-1 border border-blue-300 bg-blue-50 rounded text-sm text-right font-semibold text-blue-700 focus:ring-2 focus:ring-blue-500"
                         min="0"
                         step="1000"
@@ -362,8 +362,8 @@ export default function TransactionsPage() {
                     {row.transaction_type === 'expense' ? (
                       <input
                         type="number"
-                        value={row.amount}
-                        onChange={(e) => updateRow(row.id, 'amount', parseFloat(e.target.value) || 0)}
+                        value={row.amount || ''}
+                        onChange={(e) => updateRow(row.id, 'amount', e.target.value ? parseFloat(e.target.value) : 0)}
                         className="w-full px-2 py-1 border border-red-300 bg-red-50 rounded text-sm text-right font-semibold text-red-700 focus:ring-2 focus:ring-red-500"
                         min="0"
                         step="1000"

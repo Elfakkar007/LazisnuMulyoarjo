@@ -427,8 +427,8 @@ export default function ProgramsPage() {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Anggaran *</label>
                 <input
                   type="number"
-                  value={formData.budget}
-                  onChange={(e) => setFormData({ ...formData, budget: parseFloat(e.target.value) || 0 })}
+                  value={formData.budget || ''}
+                  onChange={(e) => setFormData({ ...formData, budget: e.target.value ? parseFloat(e.target.value) : 0 })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
                   min="0"
                   step="1000"
@@ -439,8 +439,8 @@ export default function ProgramsPage() {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Realisasi</label>
                 <input
                   type="number"
-                  value={formData.realization}
-                  onChange={(e) => setFormData({ ...formData, realization: parseFloat(e.target.value) || 0 })}
+                  value={formData.realization || ''}
+                  onChange={(e) => setFormData({ ...formData, realization: e.target.value ? parseFloat(e.target.value) : 0 })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
                   min="0"
                   step="1000"

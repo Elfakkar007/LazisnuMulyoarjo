@@ -255,8 +255,8 @@ export default function MonthlyIncomePage() {
                       {isEditing ? (
                         <input
                           type="number"
-                          value={data.gross_amount}
-                          onChange={(e) => updateValue(month, 'gross_amount', parseFloat(e.target.value) || 0)}
+                          value={data.gross_amount || ''}
+                          onChange={(e) => updateValue(month, 'gross_amount', e.target.value ? parseFloat(e.target.value) : 0)}
                           className="w-full px-2 py-1 border border-emerald-300 rounded text-right focus:ring-2 focus:ring-emerald-500"
                           min="0"
                           step="1000"
@@ -271,8 +271,8 @@ export default function MonthlyIncomePage() {
                       {isEditing ? (
                         <input
                           type="number"
-                          value={data.kaleng_wages}
-                          onChange={(e) => updateValue(month, 'kaleng_wages', parseFloat(e.target.value) || 0)}
+                          value={data.kaleng_wages || ''}
+                          onChange={(e) => updateValue(month, 'kaleng_wages', e.target.value ? parseFloat(e.target.value) : 0)}
                           className="w-full px-2 py-1 border border-gray-300 rounded text-right focus:ring-2 focus:ring-emerald-500"
                           min="0"
                           step="1000"
@@ -285,8 +285,8 @@ export default function MonthlyIncomePage() {
                       {isEditing ? (
                         <input
                           type="number"
-                          value={data.spb_cost}
-                          onChange={(e) => updateValue(month, 'spb_cost', parseFloat(e.target.value) || 0)}
+                          value={data.spb_cost || ''}
+                          onChange={(e) => updateValue(month, 'spb_cost', e.target.value ? parseFloat(e.target.value) : 0)}
                           className="w-full px-2 py-1 border border-gray-300 rounded text-right focus:ring-2 focus:ring-emerald-500"
                           min="0"
                           step="1000"

@@ -21,9 +21,9 @@ interface FinancialYear {
 interface KalengData {
   month: number;
   dusun: string;
-  total_distributed: number;
-  total_collected: number;
-  total_not_collected: number;
+  total_distributed: number | string;
+  total_collected: number | string;
+  total_not_collected: number | string;
 }
 
 const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -80,10 +80,11 @@ export default function KalengDistributionPage() {
 
   const getValue = (month: number, dusun: string, field: keyof KalengData) => {
     const key = getKey(month, dusun);
-    return kalengData[key]?.[field] || 0;
+    const val = kalengData[key]?.[field];
+    return val === undefined || val === null ? '' : val;
   };
 
-  const setValue = (month: number, dusun: string, field: keyof KalengData, value: number) => {
+  const setValue = (month: number, dusun: string, field: keyof KalengData, value: number | string) => {
     const key = getKey(month, dusun);
     const existing = kalengData[key] || {
       month,
@@ -106,14 +107,16 @@ export default function KalengDistributionPage() {
     if (!selectedYearId || saving) return;
 
     setSaving(true);
-    const items = Object.values(kalengData).map(item => ({
-      year_id: selectedYearId,
-      month: item.month,
-      dusun: item.dusun,
-      total_distributed: item.total_distributed,
-      total_collected: item.total_collected,
-      total_not_collected: item.total_not_collected,
-    }));
+    const items = Object.values(kalengData)
+      .filter(item => item.total_distributed !== '' || item.total_collected !== '' || item.total_not_collected !== '')
+      .map(item => ({
+        year_id: selectedYearId,
+        month: item.month,
+        dusun: item.dusun,
+        total_distributed: typeof item.total_distributed === 'string' ? parseInt(item.total_distributed) || 0 : item.total_distributed,
+        total_collected: typeof item.total_collected === 'string' ? parseInt(item.total_collected) || 0 : item.total_collected,
+        total_not_collected: typeof item.total_not_collected === 'string' ? parseInt(item.total_not_collected) || 0 : item.total_not_collected,
+      }));
 
     const result = await bulkUpsertKalengDistribution(items);
 
@@ -135,7 +138,13 @@ export default function KalengDistributionPage() {
         const distributed = getValue(month, dusun, 'total_distributed');
         const collected = getValue(month, dusun, 'total_collected');
         const notCollected = getValue(month, dusun, 'total_not_collected');
-        csv += `${month},${dusun},${distributed},${collected},${notCollected}\n`;
+        
+        // Convert empty strings to 0 for export
+        const distValue = distributed === '' ? 0 : distributed;
+        const collValue = collected === '' ? 0 : collected;
+        const notCollValue = notCollected === '' ? 0 : notCollected;
+        
+        csv += `${month},${dusun},${distValue},${collValue},${notCollValue}\n`;
       });
     });
 
@@ -314,7 +323,7 @@ export default function KalengDistributionPage() {
                         <input
                           type="number"
                           value={getValue(month, dusun, 'total_distributed')}
-                          onChange={(e) => setValue(month, dusun, 'total_distributed', parseInt(e.target.value) || 0)}
+                          onChange={(e) => setValue(month, dusun, 'total_distributed', e.target.value ? parseInt(e.target.value) : '')}
                           className="w-full px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                           min="0"
                         />
@@ -323,7 +332,7 @@ export default function KalengDistributionPage() {
                         <input
                           type="number"
                           value={getValue(month, dusun, 'total_collected')}
-                          onChange={(e) => setValue(month, dusun, 'total_collected', parseInt(e.target.value) || 0)}
+                          onChange={(e) => setValue(month, dusun, 'total_collected', e.target.value ? parseInt(e.target.value) : '')}
                           className="w-full px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           min="0"
                         />
@@ -332,7 +341,7 @@ export default function KalengDistributionPage() {
                         <input
                           type="number"
                           value={getValue(month, dusun, 'total_not_collected')}
-                          onChange={(e) => setValue(month, dusun, 'total_not_collected', parseInt(e.target.value) || 0)}
+                          onChange={(e) => setValue(month, dusun, 'total_not_collected', e.target.value ? parseInt(e.target.value) : '')}
                           className="w-full px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                           min="0"
                         />
