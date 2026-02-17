@@ -160,7 +160,7 @@ export function StructureCMSSection({ onDataChange }: StructureCMSSectionProps) 
                 await loadPositions(true);
                 onDataChange();
             } else {
-                setError(result.error || "Gagal menghapus jabatan");
+                setError((result as any).message || "Gagal menghapus jabatan");
             }
         } catch (err) {
             setError("Terjadi kesalahan");
@@ -177,7 +177,7 @@ export function StructureCMSSection({ onDataChange }: StructureCMSSectionProps) 
                 await loadPositions(true);
                 onDataChange();
             } else {
-                setError(result.error || "Gagal menghapus anggota");
+                setError((result as any).message || "Gagal menghapus anggota");
             }
         } catch (err) {
             setError("Terjadi kesalahan");
@@ -576,7 +576,7 @@ function PositionModal({
             if (result.success) {
                 onSuccess();
             } else {
-                onError(result.error || 'Gagal menyimpan jabatan');
+                onError((result as any).message || 'Gagal menyimpan jabatan');
             }
         } catch (err) {
             onError('Terjadi kesalahan');
@@ -1061,7 +1061,7 @@ function MemberModal({
             if (result.success) {
                 onSuccess();
             } else {
-                onError(result.error || 'Gagal menyimpan anggota');
+                onError((result as any).message || 'Gagal menyimpan anggota');
             }
         } catch (err) {
             onError('Terjadi kesalahan');

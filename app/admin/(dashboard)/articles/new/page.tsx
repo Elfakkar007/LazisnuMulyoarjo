@@ -71,7 +71,7 @@ export default function NewArticlePage() {
             const result = await createArticle(articleData);
 
             if (!result.success) {
-                alert(`Gagal menyimpan: ${result.error}`);
+                alert(`Gagal menyimpan: ${(result as any).message}`);
                 setSaving(false);
                 return;
             }

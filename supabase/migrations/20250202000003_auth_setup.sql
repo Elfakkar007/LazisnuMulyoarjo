@@ -160,55 +160,14 @@ USING (
 );
 
 -- =====================================================
--- 6. TRIGGER: AUTO CREATE ADMIN RECORD
--- Otomatis buat record di admins table saat signup
--- (Optional - untuk development/testing)
+-- 6. MANUAL ADMIN CREATION ONLY
+-- Trigger auto-create dihapus untuk keamanan.
+-- Admin harus dibuat manual via Dashboard atau Seed script.
 -- =====================================================
 
-CREATE OR REPLACE FUNCTION public.handle_new_admin_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  -- Only create admin record if email ends with @lazisnu-mulyoarjo.org
-  -- atau email ada di whitelist
-  IF NEW.email LIKE '%@lazisnu-mulyoarjo.org' THEN
-    INSERT INTO public.admins (user_id, email, name)
-    VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'name', 'Admin'))
-    ON CONFLICT (user_id) DO NOTHING;
-  END IF;
-  
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Trigger untuk auto-create admin record
+-- Hapus trigger dan function lama jika ada (untuk cleanup)
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_admin_user();
-
--- =====================================================
--- 7. MANUAL ADMIN CREATION FUNCTION
--- Function untuk manually add admin
--- =====================================================
-
-CREATE OR REPLACE FUNCTION create_admin_manually(
-  admin_email TEXT,
-  admin_password TEXT,
-  admin_name TEXT
-)
-RETURNS JSON AS $$
-DECLARE
-  new_user_id UUID;
-BEGIN
-  -- Note: Dalam production, ini harus dipanggil dari server-side
-  -- atau menggunakan Supabase Admin API
-  
-  RETURN json_build_object(
-    'success', false,
-    'message', 'Use Supabase Dashboard or Admin API to create users'
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+DROP FUNCTION IF EXISTS public.handle_new_admin_user();
 
 -- =====================================================
 -- NOTES & INSTRUCTIONS
@@ -220,13 +179,10 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 --       - Email: admin@lazisnu-mulyoarjo.org
 --       - Password: (your secure password)
 --       - Confirm email automatically
---    
---    b. Record akan otomatis dibuat di admins table via trigger
+--    b. Insert ke table admins manual:
+--       - Go to Table Editor > admins
+--       - Insert row: user_id (dari auth.users), email, name
 --
--- 2. Untuk testing, buat user dengan email @lazisnu-mulyoarjo.org
---
--- 3. Untuk production, disable auto-create trigger dan
---    manually insert ke admins table setelah user signup
---
--- 4. Rate limiting dihandle di aplikasi level (Next.js middleware)
---    dan Supabase sudah punya built-in rate limiting
+-- 2. Security Note:
+--    - Auto-admin trigger Removed to prevent unauthorized admin creation.
+--    - RLS policies ensure only listed admins can access sensitive data.

@@ -110,7 +110,7 @@ export default function EditArticlePage() {
             const result = await updateArticle(id, articleData);
 
             if (!result.success) {
-                alert(`Gagal menyimpan: ${result.error}`);
+                alert(`Gagal menyimpan: ${(result as any).message}`);
                 setSaving(false);
                 return;
             }

@@ -1,16 +1,19 @@
 // =====================================================
 // AUTH MIDDLEWARE
 // File: lib/auth/middleware.ts
-// Session update logic untuk Next.js middleware
+// Session update logic for Next.js middleware
+// Refactored for linear flow and better security
 // =====================================================
 
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function updateSession(request: NextRequest) {
-  try {
-    let supabaseResponse = NextResponse.next({ request });
+  // 1. Initialize response
+  let supabaseResponse = NextResponse.next({ request });
 
+  try {
+    // 2. Create Supabase Client
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -32,86 +35,78 @@ export async function updateSession(request: NextRequest) {
       }
     );
 
+    // 3. Get User
+    // IMPORTANT: Do not run any logic between createServerClient and getUser
     const { data: { user }, error } = await supabase.auth.getUser();
 
-    // Handle auth error
-    if (error) {
-      console.error('Auth error:', error);
-      // Redirect to login if auth fails on protected routes
-      const isAdminRoute = request.nextUrl.pathname.startsWith('/admin');
-      const isLoginPage = request.nextUrl.pathname === '/admin/login';
+    // 4. Define Route Categories
+    const path = request.nextUrl.pathname;
+    const isAdminRoute = path.startsWith('/admin');
+    const isLoginPage = path === '/admin/login';
+    const isPublicAdminPage =
+      path === '/admin/unauthorized' ||
+      path === '/admin/forgot-password' ||
+      path === '/admin/reset-password';
 
-      if (isAdminRoute && !isLoginPage) {
-        const redirectUrl = request.nextUrl.clone();
-        redirectUrl.pathname = '/admin/login';
-        return NextResponse.redirect(redirectUrl);
+    // 5. Handle Auth State & Redirections
+
+    // CASE A: User is NOT logged in (or token invalid)
+    if (error || !user) {
+      if (isAdminRoute && !isLoginPage && !isPublicAdminPage) {
+        // Redirect unauthenticated users trying to access protected admin routes
+        const url = request.nextUrl.clone();
+        url.pathname = '/admin/login';
+        url.searchParams.set('redirectTo', path); // Persist destination
+        return NextResponse.redirect(url);
       }
+      // Allow access to public routes and login page
+      return supabaseResponse;
     }
 
-    // IMPORTANT: Avoid writing any logic between createServerClient and
-    // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-    // issues with users being randomly logged out.
-
-
-
-    const isAdminRoute = request.nextUrl.pathname.startsWith('/admin');
-    const isLoginPage = request.nextUrl.pathname === '/admin/login';
-    const isUnauthorizedPage = request.nextUrl.pathname === '/admin/unauthorized';
-    const isForgotPasswordPage = request.nextUrl.pathname === '/admin/forgot-password';
-    const isResetPasswordPage = request.nextUrl.pathname === '/admin/reset-password';
-
-    // If accessing admin routes (except login, unauthorized, and password pages)
-    if (
-      isAdminRoute &&
-      !isLoginPage &&
-      !isUnauthorizedPage &&
-      !isForgotPasswordPage &&
-      !isResetPasswordPage
-    ) {
-      if (!user) {
-        // Redirect to login if not authenticated
-        const redirectUrl = request.nextUrl.clone();
-        redirectUrl.pathname = '/admin/login';
-        redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname);
-        return NextResponse.redirect(redirectUrl);
-      }
-
-      // Check if user is admin
+    // CASE B: User IS logged in
+    if (user) {
+      // Check if user is actually an admin
       const { data: adminData } = await supabase
         .from('admins')
         .select('id')
         .eq('user_id', user.id)
         .single();
 
-      if (!adminData) {
-        // Redirect to unauthorized page if not admin
-        const redirectUrl = request.nextUrl.clone();
-        redirectUrl.pathname = '/admin/unauthorized';
-        return NextResponse.redirect(redirectUrl);
+      const isUserAdmin = !!adminData;
+
+      // Scenario 1: Logged in user accessing Login page
+      if (isLoginPage) {
+        if (isUserAdmin) {
+          // Redirect Admins to dashboard
+          const url = request.nextUrl.clone();
+          url.pathname = '/admin/dashboard';
+          return NextResponse.redirect(url);
+        }
+        // Non-admin auth users can stay on login page (to switch accounts?) or could be redirected home
+        // For now, let them see login page to potentially sign out
+        return supabaseResponse;
+      }
+
+      // Scenario 2: Accessing Protected Admin Routes
+      if (isAdminRoute && !isPublicAdminPage) {
+        if (!isUserAdmin) {
+          // Authenticated but NOT an admin
+          const url = request.nextUrl.clone();
+          url.pathname = '/admin/unauthorized';
+          return NextResponse.redirect(url);
+        }
+        // Is Admin -> Allow access
+        return supabaseResponse;
       }
     }
 
-    // If already logged in and trying to access login page
-    if (user && isLoginPage) {
-      // Check if user is admin
-      const { data: adminData } = await supabase
-        .from('admins')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (adminData) {
-        // Redirect to dashboard if already logged in as admin
-        const redirectUrl = request.nextUrl.clone();
-        redirectUrl.pathname = '/admin/dashboard';
-        return NextResponse.redirect(redirectUrl);
-      }
-    }
-
-    // IMPORTANT: You *must* return the supabaseResponse object as it is.
+    // Default: Allow access to all other routes
     return supabaseResponse;
-  } catch (error) {
-    console.error('Middleware error:', error);
+
+  } catch (e) {
+    // Failsafe: If anything explodes, treat as unauthenticated
+    // But allow public access so the site doesn't crash entirely
+    console.error('Middleware Critical Error:', e);
     return NextResponse.next({ request });
   }
 }

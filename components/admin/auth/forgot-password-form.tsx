@@ -32,7 +32,7 @@ export function ForgotPasswordForm() {
       const result = await requestPasswordReset(email);
 
       if (!result.success) {
-        setError(result.error || 'Gagal mengirim email reset');
+        setError((result as any).message || 'Gagal mengirim email reset');
         setLoading(false);
         return;
       }

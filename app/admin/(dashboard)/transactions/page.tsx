@@ -59,25 +59,25 @@ export default function TransactionsPage() {
       getFinancialYears(),
       getProgramCategories(),
     ]);
-    
+
     setYears(yearsData);
     setCategories(categoriesData);
-    
+
     if (yearsData.length > 0) {
       const activeYear = yearsData.find(y => y.is_active);
       setSelectedYearId(activeYear?.id || yearsData[0].id);
     }
-    
+
     if (categoriesData.length > 0) {
       setSelectedCategoryId(categoriesData[0].id);
     }
-    
+
     setLoading(false);
   };
 
   const loadTransactions = async () => {
     const data = await getFinancialTransactions(selectedYearId, selectedCategoryId);
-    
+
     // Convert to editable format and calculate running balance
     let balance = 0;
     const rows: TransactionRow[] = data.map(item => {
@@ -86,7 +86,7 @@ export default function TransactionsPage() {
       } else {
         balance -= item.amount;
       }
-      
+
       return {
         id: item.id || crypto.randomUUID(),
         description: item.description,
@@ -96,7 +96,7 @@ export default function TransactionsPage() {
         balance: balance,
       };
     });
-    
+
     setTransactions(rows);
   };
 
@@ -113,7 +113,7 @@ export default function TransactionsPage() {
 
   const addIncomeRow = () => {
     const category = categories.find(c => c.id === selectedCategoryId);
-    
+
     const newRow: TransactionRow = {
       id: crypto.randomUUID(),
       description: `Total Dana ${category?.name} ${years.find(y => y.id === selectedYearId)?.year || ''}`,
@@ -125,7 +125,7 @@ export default function TransactionsPage() {
   };
 
   const updateRow = (id: string, field: keyof TransactionRow, value: any) => {
-    setTransactions(transactions.map(row => 
+    setTransactions(transactions.map(row =>
       row.id === id ? { ...row, [field]: value } : row
     ));
   };
@@ -149,9 +149,9 @@ export default function TransactionsPage() {
 
   const handleSave = async () => {
     if (saving) return;
-    
+
     setSaving(true);
-    
+
     try {
       // Prepare data for bulk upsert
       const items = transactions.map(row => ({
@@ -169,7 +169,7 @@ export default function TransactionsPage() {
         alert('Data berhasil disimpan!');
         await loadTransactions();
       } else {
-        alert(`Gagal menyimpan: ${result.error}`);
+        alert(`Gagal menyimpan: ${(result as any).message}`);
       }
     } catch (error) {
       console.error('Save error:', error);
@@ -266,7 +266,7 @@ export default function TransactionsPage() {
 
       {/* Summary */}
       {selectedCategory && (
-        <div 
+        <div
           className="rounded-xl p-6 text-white"
           style={{ backgroundColor: selectedCategory.color_code }}
         >
@@ -385,7 +385,7 @@ export default function TransactionsPage() {
                   </td>
                 </tr>
               ))}
-              
+
               {/* Total Row */}
               <tr className="bg-gray-200 border-t-2 border-gray-900 font-bold">
                 <td colSpan={3} className="px-4 py-4 text-gray-900">TOTAL</td>

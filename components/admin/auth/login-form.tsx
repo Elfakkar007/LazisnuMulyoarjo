@@ -40,7 +40,7 @@ export function LoginForm() {
       const result = await signIn(email, password);
 
       if (!result.success) {
-        setError(result.error || 'Login gagal');
+        setError((result as any).message || 'Login gagal');
         setLoading(false);
         return;
       }

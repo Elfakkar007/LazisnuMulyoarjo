@@ -53,13 +53,13 @@ export function ResetPasswordForm() {
       const result = await updatePassword(newPassword);
 
       if (!result.success) {
-        setError(result.error || 'Gagal memperbarui password');
+        setError((result as any).message || 'Gagal memperbarui password');
         setLoading(false);
         return;
       }
 
       setSuccess(true);
-      
+
       // Redirect to login after 2 seconds
       setTimeout(() => {
         router.push('/admin/login');

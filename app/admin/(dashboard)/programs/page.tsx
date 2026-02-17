@@ -77,16 +77,16 @@ export default function ProgramsPage() {
       getFinancialYears(),
       getProgramCategories(),
     ]);
-    
+
     setYears(yearsData);
     setCategories(categoriesData);
-    
+
     if (yearsData.length > 0) {
       const activeYear = yearsData.find(y => y.is_active);
       setSelectedYearId(activeYear?.id || yearsData[0].id);
       setFormData(prev => ({ ...prev, year_id: activeYear?.id || yearsData[0].id }));
     }
-    
+
     setLoading(false);
   };
 
@@ -116,7 +116,7 @@ export default function ProgramsPage() {
     }
 
     setSubmitting(true);
-    
+
     let result;
     if (editingId) {
       result = await updateProgram(editingId, formData);
@@ -131,9 +131,9 @@ export default function ProgramsPage() {
       await loadPrograms();
       resetForm();
     } else {
-      alert(`Gagal menyimpan: ${result.error}`);
+      alert(`Gagal menyimpan: ${(result as any).message}`);
     }
-    
+
     setSubmitting(false);
   };
 
@@ -164,7 +164,7 @@ export default function ProgramsPage() {
     if (result.success) {
       await loadPrograms();
     } else {
-      alert(`Gagal menghapus: ${result.error}`);
+      alert(`Gagal menghapus: ${(result as any).message}`);
     }
     setSubmitting(false);
   };
@@ -187,7 +187,7 @@ export default function ProgramsPage() {
 
   const handleExportTemplate = () => {
     let csv = 'Kategori,Nama Program,Deskripsi,Target Sasaran,Kuantitas,Anggaran,Realisasi,Status\n';
-    
+
     const filteredPrograms = programs.filter(p => {
       if (filterCategory !== 'all' && p.category_id !== filterCategory) return false;
       if (filterStatus === 'completed' && !p.is_completed) return false;
@@ -313,13 +313,13 @@ export default function ProgramsPage() {
       {/* Category Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {categoryStats.map(cat => (
-          <div 
+          <div
             key={cat.id}
             className="bg-white rounded-xl shadow-md p-4 border-2"
             style={{ borderColor: cat.color_code }}
           >
             <div className="flex items-center gap-2 mb-3">
-              <div 
+              <div
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: cat.color_code }}
               />
@@ -500,7 +500,7 @@ export default function ProgramsPage() {
               {filteredPrograms.map(program => {
                 const category = categories.find(c => c.id === program.category_id);
                 const progress = calculateProgramProgress(program.realization, program.budget);
-                
+
                 return (
                   <tr key={program.id} className="border-b border-gray-200 hover:bg-gray-50">
                     <td className="px-4 py-3">
@@ -513,7 +513,7 @@ export default function ProgramsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div 
+                        <div
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: category?.color_code }}
                         />
@@ -536,7 +536,7 @@ export default function ProgramsPage() {
                       <div className="flex flex-col items-center gap-1">
                         <span className="text-xs font-bold">{progress}%</span>
                         <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div 
+                          <div
                             className="h-full bg-gradient-to-r from-emerald-500 to-teal-500"
                             style={{ width: `${progress}%` }}
                           />

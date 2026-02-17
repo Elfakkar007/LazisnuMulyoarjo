@@ -69,7 +69,7 @@ export default function ArticlesPage() {
             await loadArticles();
             alert('Artikel berhasil dihapus');
         } else {
-            alert(`Gagal menghapus: ${result.error}`);
+            alert(`Gagal menghapus: ${(result as any).message}`);
         }
     };
 
@@ -81,7 +81,7 @@ export default function ArticlesPage() {
         if (result.success) {
             await loadArticles();
         } else {
-            alert(`Gagal: ${result.error}`);
+            alert(`Gagal: ${(result as any).message}`);
         }
     };
 
@@ -327,8 +327,8 @@ export default function ArticlesPage() {
                                             <button
                                                 onClick={() => handleTogglePublish(article)}
                                                 className={`inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full transition-colors ${article.is_published
-                                                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                                     }`}
                                             >
                                                 {article.is_published ? (

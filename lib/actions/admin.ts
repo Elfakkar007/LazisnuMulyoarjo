@@ -8,8 +8,36 @@
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { Database } from '@/types/database.types';
+import {
+  organizationProfileSchema,
+  structurePositionSchema,
+  structureMemberSchema,
+  financialYearSchema,
+  kalengDistributionSchema,
+  monthlyIncomeSchema,
+  programCategorySchema,
+  programSchema,
+  articleSchema,
+  homepageSlideSchema,
+  financialTransactionSchema,
+} from '@/lib/validations/admin';
 
 type Tables = Database['public']['Tables'];
+
+// Helper to format Zod errors
+function formatError(error: any) {
+  if (error && error.flatten) {
+    return {
+      success: false,
+      errors: error.flatten().fieldErrors,
+      message: 'Validation failed',
+    };
+  }
+  return {
+    success: false,
+    message: error.message || 'An unexpected error occurred',
+  };
+}
 
 // =====================================================
 // ORGANIZATION PROFILE
@@ -18,16 +46,22 @@ type Tables = Database['public']['Tables'];
 export async function updateOrganizationProfile(
   data: Tables['organization_profile']['Update']
 ) {
+  const result = organizationProfileSchema.safeParse(data);
+
+  if (!result.success) {
+    return formatError(result.error);
+  }
+
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('organization_profile')
-    .update(data)
+    .update(result.data)
     .eq('id', data.id!);
 
   if (error) {
     console.error('Error updating organization profile:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/profil');
@@ -41,17 +75,20 @@ export async function updateOrganizationProfile(
 export async function createStructurePosition(
   data: Tables['structure_positions']['Insert']
 ) {
+  const result = structurePositionSchema.safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
   const { data: createdData, error } = await supabase
     .from('structure_positions')
-    .insert(data)
+    .insert(result.data as any) // Type assertion due to Zod vs Supabase type mismatch potential
     .select()
     .single();
 
   if (error) {
     console.error('Error creating structure position:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/structure');
@@ -63,16 +100,19 @@ export async function updateStructurePosition(
   id: string,
   data: Tables['structure_positions']['Update']
 ) {
+  const result = structurePositionSchema.partial().safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('structure_positions')
-    .update(data)
+    .update(result.data)
     .eq('id', id);
 
   if (error) {
     console.error('Error updating structure position:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/structure');
@@ -90,7 +130,7 @@ export async function deleteStructurePosition(id: string) {
 
   if (error) {
     console.error('Error deleting structure position:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/structure');
@@ -101,15 +141,18 @@ export async function deleteStructurePosition(id: string) {
 export async function createStructureMember(
   data: Tables['structure_members']['Insert']
 ) {
+  const result = structureMemberSchema.safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('structure_members')
-    .insert(data);
+    .insert(result.data as any);
 
   if (error) {
     console.error('Error creating structure member:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/structure');
@@ -121,16 +164,19 @@ export async function updateStructureMember(
   id: string,
   data: Tables['structure_members']['Update']
 ) {
+  const result = structureMemberSchema.partial().safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('structure_members')
-    .update(data)
+    .update(result.data)
     .eq('id', id);
 
   if (error) {
     console.error('Error updating structure member:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/structure');
@@ -148,7 +194,7 @@ export async function deleteStructureMember(id: string) {
 
   if (error) {
     console.error('Error deleting structure member:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/structure');
@@ -163,15 +209,18 @@ export async function deleteStructureMember(id: string) {
 export async function createFinancialYear(
   data: Tables['financial_years']['Insert']
 ) {
+  const result = financialYearSchema.safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('financial_years')
-    .insert(data);
+    .insert(result.data as any);
 
   if (error) {
     console.error('Error creating financial year:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/financial-years');
@@ -182,16 +231,19 @@ export async function updateFinancialYear(
   id: string,
   data: Tables['financial_years']['Update']
 ) {
+  const result = financialYearSchema.partial().safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('financial_years')
-    .update(data)
+    .update(result.data)
     .eq('id', id);
 
   if (error) {
     console.error('Error updating financial year:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/financial-years');
@@ -209,7 +261,7 @@ export async function deleteFinancialYear(id: string) {
 
   if (error) {
     console.error('Error deleting financial year:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/financial-years');
@@ -223,17 +275,20 @@ export async function deleteFinancialYear(id: string) {
 export async function upsertKalengDistribution(
   data: Tables['kaleng_distribution']['Insert']
 ) {
+  const result = kalengDistributionSchema.safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('kaleng_distribution')
-    .upsert(data, {
+    .upsert(result.data as any, {
       onConflict: 'year_id,month,dusun',
     });
 
   if (error) {
     console.error('Error upserting kaleng distribution:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/kaleng-distribution');
@@ -244,17 +299,34 @@ export async function upsertKalengDistribution(
 export async function bulkUpsertKalengDistribution(
   items: Tables['kaleng_distribution']['Insert'][]
 ) {
+  // Validate all items
+  const validItems = [];
+  const errors = [];
+
+  for (const item of items) {
+    const result = kalengDistributionSchema.safeParse(item);
+    if (!result.success) {
+      errors.push(result.error.flatten().fieldErrors);
+    } else {
+      validItems.push(result.data);
+    }
+  }
+
+  if (errors.length > 0) {
+    return { success: false, message: 'Some items failed validation', errors: errors[0] }; // Simplified error return
+  }
+
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('kaleng_distribution')
-    .upsert(items, {
+    .upsert(validItems as any, {
       onConflict: 'year_id,month,dusun',
     });
 
   if (error) {
     console.error('Error bulk upserting kaleng distribution:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/kaleng-distribution');
@@ -269,17 +341,20 @@ export async function bulkUpsertKalengDistribution(
 export async function upsertMonthlyIncome(
   data: Tables['monthly_income']['Insert']
 ) {
+  const result = monthlyIncomeSchema.safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('monthly_income')
-    .upsert(data, {
+    .upsert(result.data as any, {
       onConflict: 'year_id,month',
     });
 
   if (error) {
     console.error('Error upserting monthly income:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/monthly-income');
@@ -295,15 +370,18 @@ export async function upsertMonthlyIncome(
 export async function createProgramCategory(
   data: Tables['program_categories']['Insert']
 ) {
+  const result = programCategorySchema.safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('program_categories')
-    .insert(data);
+    .insert(result.data as any);
 
   if (error) {
     console.error('Error creating program category:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/program-categories');
@@ -315,16 +393,19 @@ export async function updateProgramCategory(
   id: string,
   data: Tables['program_categories']['Update']
 ) {
+  const result = programCategorySchema.partial().safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('program_categories')
-    .update(data)
+    .update(result.data)
     .eq('id', id);
 
   if (error) {
     console.error('Error updating program category:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/program-categories');
@@ -342,7 +423,7 @@ export async function deleteProgramCategory(id: string) {
 
   if (error) {
     console.error('Error deleting program category:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/program-categories');
@@ -355,13 +436,16 @@ export async function deleteProgramCategory(id: string) {
 // =====================================================
 
 export async function createProgram(data: Tables['programs']['Insert']) {
+  const result = programSchema.safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
-  const { error } = await supabase.from('programs').insert(data);
+  const { error } = await supabase.from('programs').insert(result.data as any);
 
   if (error) {
     console.error('Error creating program:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/programs');
@@ -373,16 +457,19 @@ export async function updateProgram(
   id: string,
   data: Tables['programs']['Update']
 ) {
+  const result = programSchema.partial().safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('programs')
-    .update(data)
+    .update(result.data)
     .eq('id', id);
 
   if (error) {
     console.error('Error updating program:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/programs');
@@ -397,7 +484,7 @@ export async function deleteProgram(id: string) {
 
   if (error) {
     console.error('Error deleting program:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/programs');
@@ -406,13 +493,20 @@ export async function deleteProgram(id: string) {
 }
 
 export async function bulkCreatePrograms(items: Tables['programs']['Insert'][]) {
+  const validItems = [];
+  // Basic validation only for bulk upload to prevent timeout, or iterate
+  for (const item of items) {
+    const result = programSchema.safeParse(item);
+    if (result.success) validItems.push(result.data);
+  }
+
   const supabase = await createClient();
 
-  const { error } = await supabase.from('programs').insert(items);
+  const { error } = await supabase.from('programs').insert(validItems as any);
 
   if (error) {
     console.error('Error bulk creating programs:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/programs');
@@ -425,13 +519,16 @@ export async function bulkCreatePrograms(items: Tables['programs']['Insert'][]) 
 // =====================================================
 
 export async function createArticle(data: Tables['activity_articles']['Insert']) {
+  const result = articleSchema.safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
-  const { error } = await supabase.from('activity_articles').insert(data);
+  const { error } = await supabase.from('activity_articles').insert(result.data as any);
 
   if (error) {
     console.error('Error creating article:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/articles');
@@ -443,21 +540,24 @@ export async function updateArticle(
   id: string,
   data: Tables['activity_articles']['Update']
 ) {
+  const result = articleSchema.partial().safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('activity_articles')
-    .update(data)
+    .update(result.data)
     .eq('id', id);
 
   if (error) {
     console.error('Error updating article:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/articles');
   revalidatePath('/kegiatan');
-  revalidatePath(`/kegiatan/${data.slug}`);
+  if (data.slug) revalidatePath(`/kegiatan/${data.slug}`);
   return { success: true };
 }
 
@@ -471,7 +571,7 @@ export async function deleteArticle(id: string) {
 
   if (error) {
     console.error('Error deleting article:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/articles');
@@ -489,7 +589,7 @@ export async function publishArticle(id: string) {
 
   if (error) {
     console.error('Error publishing article:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/articles');
@@ -508,7 +608,7 @@ export async function unpublishArticle(id: string) {
 
   if (error) {
     console.error('Error unpublishing article:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/articles');
@@ -523,13 +623,16 @@ export async function unpublishArticle(id: string) {
 export async function createHomepageSlide(
   data: Tables['homepage_slides']['Insert']
 ) {
+  const result = homepageSlideSchema.safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
-  const { error } = await supabase.from('homepage_slides').insert(data);
+  const { error } = await supabase.from('homepage_slides').insert(result.data as any);
 
   if (error) {
     console.error('Error creating homepage slide:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/homepage-slides');
@@ -541,16 +644,19 @@ export async function updateHomepageSlide(
   id: string,
   data: Tables['homepage_slides']['Update']
 ) {
+  const result = homepageSlideSchema.partial().safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('homepage_slides')
-    .update(data)
+    .update(result.data)
     .eq('id', id);
 
   if (error) {
     console.error('Error updating homepage slide:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/homepage-slides');
@@ -568,7 +674,7 @@ export async function deleteHomepageSlide(id: string) {
 
   if (error) {
     console.error('Error deleting homepage slide:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/homepage-slides');
@@ -593,18 +699,13 @@ export async function reorderHomepageSlides(
 
   if (hasError) {
     console.error('Error reordering homepage slides');
-    return { success: false, error: 'Failed to reorder slides' };
+    return { success: false, message: 'Failed to reorder slides' };
   }
 
   revalidatePath('/admin/homepage-slides');
   revalidatePath('/');
   return { success: true };
 }
-
-// =====================================================
-// ADDITIONS TO lib/actions/admin.ts
-// Tambahkan function-function berikut ke file lib/actions/admin.ts
-// =====================================================
 
 
 // =====================================================
@@ -619,15 +720,18 @@ export async function createFinancialTransaction(data: {
   amount: number;
   transaction_date: string;
 }) {
+  const result = financialTransactionSchema.safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('financial_transactions')
-    .insert(data);
+    .insert(result.data as any);
 
   if (error) {
     console.error('Error creating transaction:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/transactions');
@@ -643,16 +747,19 @@ export async function updateFinancialTransaction(
     transaction_date?: string;
   }
 ) {
+  const result = financialTransactionSchema.partial().safeParse(data);
+  if (!result.success) return formatError(result.error);
+
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('financial_transactions')
-    .update(data)
+    .update(result.data)
     .eq('id', id);
 
   if (error) {
     console.error('Error updating transaction:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/transactions');
@@ -670,7 +777,7 @@ export async function deleteFinancialTransaction(id: string) {
 
   if (error) {
     console.error('Error deleting transaction:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/transactions');
@@ -686,6 +793,13 @@ export async function bulkUpsertFinancialTransactions(items: {
   amount: number;
   transaction_date: string;
 }[]) {
+
+  const validItems = [];
+  for (const item of items) {
+    const result = financialTransactionSchema.safeParse(item);
+    if (result.success) validItems.push(result.data);
+  }
+
   const supabase = await createClient();
 
   // Delete existing transactions for this year/category first
@@ -701,11 +815,11 @@ export async function bulkUpsertFinancialTransactions(items: {
   // Insert new transactions
   const { error } = await supabase
     .from('financial_transactions')
-    .insert(items);
+    .insert(validItems as any);
 
   if (error) {
     console.error('Error bulk upserting transactions:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/transactions');
@@ -722,6 +836,7 @@ export async function createTransactionTemplate(data: {
   template_name: string;
   columns: any;
 }) {
+  // Skipping Zod for templates as columns is JSON/any
   const supabase = await createClient();
 
   const { error } = await supabase
@@ -730,7 +845,7 @@ export async function createTransactionTemplate(data: {
 
   if (error) {
     console.error('Error creating template:', error);
-    return { success: false, error: error.message };
+    return { success: false, message: error.message };
   }
 
   revalidatePath('/admin/transactions');

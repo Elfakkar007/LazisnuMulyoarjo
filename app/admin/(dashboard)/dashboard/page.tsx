@@ -11,7 +11,8 @@ import {
   FileText,
   Package,
   Plus,
-  ArrowRight
+  ArrowRight,
+  ChevronRight
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import {
@@ -35,8 +36,6 @@ const renderPieLabel = ({ name, percent }: PieLabelRenderProps) => {
   return `${name}: ${(safePercent * 100).toFixed(0)}%`;
 };
 
-
-
 // Colors for pie chart
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
@@ -47,6 +46,11 @@ const formatCurrency = (amount: number) => {
     currency: 'IDR',
     minimumFractionDigits: 0,
   }).format(amount);
+};
+
+// Format number with separator
+const formatNumber = (num: number) => {
+  return new Intl.NumberFormat('id-ID').format(num);
 };
 
 // Format date
@@ -114,185 +118,237 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard Admin</h1>
-        <p className="text-gray-600 mt-1">Ringkasan data dan aktivitas terkini</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard Admin</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Ringkasan data dan aktivitas terkini</p>
       </div>
 
-      {/* Quick Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Quick Stats Cards - Responsive Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
         {/* Total Pemasukan */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Pemasukan</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
+        <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-100">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Total Pemasukan</p>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 break-words">
                   {formatCurrency(stats.totalIncome)}
                 </p>
+                <p className="text-xs text-gray-400 mt-1">Bulan ini</p>
               </div>
-              <div className="ml-4 p-3 bg-emerald-50 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-emerald-600" />
+              <div className="ml-3 p-2 sm:p-2.5 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex-shrink-0">
+                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Total Pengeluaran */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Total Pengeluaran</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
+        <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-100">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Total Pengeluaran</p>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 break-words">
                   {formatCurrency(stats.totalExpense)}
                 </p>
+                <p className="text-xs text-gray-400 mt-1">Bulan ini</p>
               </div>
-              <div className="ml-4 p-3 bg-red-50 rounded-lg">
-                <TrendingDown className="h-6 w-6 text-red-600" />
+              <div className="ml-3 p-2 sm:p-2.5 bg-gradient-to-br from-red-400 to-red-600 rounded-lg flex-shrink-0">
+                <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Sisa Saldo */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Sisa Saldo</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
+        <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-100">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Sisa Saldo</p>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 break-words">
                   {formatCurrency(stats.balance)}
                 </p>
+                <p className="text-xs text-gray-400 mt-1">-</p>
               </div>
-              <div className="ml-4 p-3 bg-blue-50 rounded-lg">
-                <Wallet className="h-6 w-6 text-blue-600" />
+              <div className="ml-3 p-2 sm:p-2.5 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex-shrink-0">
+                <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Total Artikel */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Artikel Published</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {stats.totalArticles}
+        <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-100">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Artikel Published</p>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                  {formatNumber(stats.totalArticles)}
                 </p>
+                <p className="text-xs text-gray-400 mt-1">Total artikel</p>
               </div>
-              <div className="ml-4 p-3 bg-purple-50 rounded-lg">
-                <FileText className="h-6 w-6 text-purple-600" />
+              <div className="ml-3 p-2 sm:p-2.5 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex-shrink-0">
+                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Total Kaleng */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">Kaleng Bulan Ini</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {stats.totalDistribution}
+        <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-100">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Kaleng Bulan Ini</p>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                  {formatNumber(stats.totalDistribution)}
                 </p>
+                <p className="text-xs text-gray-400 mt-1">Unit kaleng</p>
               </div>
-              <div className="ml-4 p-3 bg-orange-50 rounded-lg">
-                <Package className="h-6 w-6 text-orange-600" />
+              <div className="ml-3 p-2 sm:p-2.5 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex-shrink-0">
+                <Package className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Charts Section - Responsive Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Income Trend Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Perolehan 6 Bulan Terakhir</CardTitle>
+        <Card className="bg-white shadow-sm border border-gray-100">
+          <CardHeader className="border-b border-gray-100 pb-4">
+            <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">
+              Perolehan 6 Bulan Terakhir
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={incomeChart}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip
-                  formatter={(value: number | undefined) => formatCurrency(value ?? 0)}
-                  labelStyle={{ color: '#374151' }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="amount"
-                  stroke="#10b981"
-                  strokeWidth={2}
-                  dot={{ fill: '#10b981' }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <CardContent className="p-4 sm:p-6">
+            <div className="w-full h-[250px] sm:h-[280px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={incomeChart}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fontSize: 12 }}
+                    stroke="#9ca3af"
+                  />
+                  <YAxis
+                    tick={{ fontSize: 12 }}
+                    stroke="#9ca3af"
+                  />
+                  <Tooltip
+                    formatter={(value: number | undefined) => formatCurrency(value ?? 0)}
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="amount"
+                    stroke="#10b981"
+                    strokeWidth={3}
+                    dot={{ fill: '#10b981', r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
 
         {/* Expense Distribution Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Distribusi Pengeluaran</CardTitle>
+        <Card className="bg-white shadow-sm border border-gray-100">
+          <CardHeader className="border-b border-gray-100 pb-4">
+            <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">
+              Distribusi Pengeluaran
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={expenseDistribution}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={renderPieLabel}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {expenseDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value: any) => formatCurrency(value)} />
-              </PieChart>
-            </ResponsiveContainer>
+          <CardContent className="p-4 sm:p-6">
+            <div className="w-full h-[250px] sm:h-[280px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={expenseDistribution}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={renderPieLabel}
+                    outerRadius="70%"
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {expenseDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value: any) => formatCurrency(value)}
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Activities Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Recent Activities Section - Responsive Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Recent Transactions */}
-        <Card>
-          <CardHeader>
+        <Card className="bg-white shadow-sm border border-gray-100">
+          <CardHeader className="border-b border-gray-100 pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle>Transaksi Terakhir</CardTitle>
+              <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">
+                Transaksi Terakhir
+              </CardTitle>
               <Link href="/admin/transactions">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
                   Lihat Semua
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ChevronRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="p-4 sm:p-6">
+            <div className="space-y-3">
               {recentTransactions.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4">Belum ada transaksi</p>
+                <div className="text-center py-8">
+                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <TrendingUp className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <p className="text-sm text-gray-500">Belum ada transaksi</p>
+                </div>
               ) : (
                 recentTransactions.map((transaction) => (
-                  <div key={transaction.id} className="flex items-center justify-between pb-4 border-b last:border-b-0">
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">{transaction.description}</p>
-                      <p className="text-sm text-gray-500">
-                        {transaction.category?.name} • {formatDate(transaction.transaction_date)}
+                  <div
+                    key={transaction.id}
+                    className="flex items-start justify-between py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 px-2 rounded-lg transition-colors"
+                  >
+                    <div className="flex-1 min-w-0 mr-4">
+                      <p className="font-medium text-sm text-gray-900 truncate">
+                        {transaction.description}
                       </p>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                          {transaction.category?.name}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {formatDate(transaction.transaction_date)}
+                        </span>
+                      </div>
                     </div>
-                    <div className={`font-semibold ${transaction.transaction_type === 'income' ? 'text-emerald-600' : 'text-red-600'}`}>
+                    <div className={`font-semibold text-sm whitespace-nowrap flex-shrink-0 ${transaction.transaction_type === 'income' ? 'text-emerald-600' : 'text-red-600'
+                      }`}>
                       {transaction.transaction_type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
                     </div>
                   </div>
@@ -301,7 +357,7 @@ export default function DashboardPage() {
             </div>
             <div className="mt-6">
               <Link href="/admin/transactions">
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
+                <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
                   <Plus className="mr-2 h-4 w-4" />
                   Tambah Transaksi
                 </Button>
@@ -311,40 +367,55 @@ export default function DashboardPage() {
         </Card>
 
         {/* Recent Draft Articles */}
-        <Card>
-          <CardHeader>
+        <Card className="bg-white shadow-sm border border-gray-100">
+          <CardHeader className="border-b border-gray-100 pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle>Artikel Draft</CardTitle>
+              <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">
+                Artikel Draft
+              </CardTitle>
               <Link href="/admin/articles">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
                   Lihat Semua
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ChevronRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="p-4 sm:p-6">
+            <div className="space-y-3">
               {recentDrafts.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4">Belum ada artikel draft</p>
+                <div className="text-center py-8">
+                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <FileText className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <p className="text-sm text-gray-500">Belum ada artikel draft</p>
+                </div>
               ) : (
                 recentDrafts.map((article) => (
-                  <div key={article.id} className="pb-4 border-b last:border-b-0">
+                  <div
+                    key={article.id}
+                    className="py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 px-2 rounded-lg transition-colors"
+                  >
                     <Link href={`/admin/articles/${article.id}/edit`}>
-                      <h3 className="font-medium text-gray-900 hover:text-emerald-600 transition-colors">
+                      <h3 className="font-medium text-sm text-gray-900 hover:text-emerald-600 transition-colors line-clamp-2">
                         {article.title}
                       </h3>
                     </Link>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {article.category} • {formatDate(article.created_at)}
-                    </p>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                        {article.category}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {formatDate(article.created_at)}
+                      </span>
+                    </div>
                   </div>
                 ))
               )}
             </div>
             <div className="mt-6">
               <Link href="/admin/articles/new">
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
+                <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
                   <Plus className="mr-2 h-4 w-4" />
                   Buat Artikel
                 </Button>

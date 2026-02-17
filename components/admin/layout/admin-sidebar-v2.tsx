@@ -15,7 +15,8 @@ import {
   FileText,
   Image as ImageIcon,
   X,
-  ExternalLink
+  Home,
+  LogOut
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -58,22 +59,28 @@ export default function AdminSidebarV2({ onClose, isMobile = false }: AdminSideb
     fetchLogo();
   }, []);
 
+  const handleLogout = () => {
+    if (confirm('Apakah Anda yakin ingin keluar?')) {
+      window.location.href = '/api/auth/signout';
+    }
+  };
+
   return (
-    <aside className="flex h-full w-64 flex-col bg-white border-r border-gray-200 shadow-sm">
+    <aside className="flex h-full w-64 flex-col bg-white border-r border-gray-200">
       {/* Header with Logo */}
-      <div className="flex h-16 items-center justify-between px-6 border-b border-gray-200">
-        <Link href="/" className="flex items-center gap-3">
+      <div className="flex h-14 sm:h-16 items-center justify-between px-4 sm:px-6 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-white">
+        <Link href="/" className="flex items-center gap-2.5">
           {logoUrl ? (
             <Image
               src={logoUrl}
               alt="LazisNU Mulyoarjo Logo"
-              width={40}
-              height={40}
+              width={36}
+              height={36}
               className="object-contain rounded"
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">L</span>
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-sm">
+              <span className="text-white font-bold text-base">L</span>
             </div>
           )}
           <div className="flex flex-col">
@@ -84,7 +91,8 @@ export default function AdminSidebarV2({ onClose, isMobile = false }: AdminSideb
         {isMobile && onClose && (
           <button
             onClick={onClose}
-            className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+            className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+            aria-label="Close menu"
           >
             <X className="h-5 w-5" />
           </button>
@@ -93,7 +101,7 @@ export default function AdminSidebarV2({ onClose, isMobile = false }: AdminSideb
 
       {/* Navigation Menu */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
@@ -106,29 +114,40 @@ export default function AdminSidebarV2({ onClose, isMobile = false }: AdminSideb
                 className={`
                   group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200
                   ${isActive
-                    ? 'bg-emerald-50 text-emerald-700 shadow-sm border-l-4 border-emerald-600 pl-2.5'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 border-l-4 border-transparent'
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                   }
                 `}
               >
-                <Icon className={`h-5 w-5 flex-shrink-0 transition-colors ${isActive ? 'text-emerald-600' : 'text-gray-500 group-hover:text-gray-700'
+                <Icon className={`h-5 w-5 flex-shrink-0 transition-colors ${isActive ? 'text-emerald-600' : 'text-gray-400 group-hover:text-gray-600'
                   }`} />
                 <span className="truncate">{item.label}</span>
+                {isActive && (
+                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-600"></div>
+                )}
               </Link>
             );
           })}
         </div>
       </nav>
 
-      {/* Footer Link to Website */}
-      <div className="border-t border-gray-200 p-4">
+      {/* Footer - Website and Logout Links */}
+      <div className="border-t border-gray-200 p-3 space-y-2">
         <Link
           href="/"
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 border border-gray-200 hover:border-gray-300 shadow-sm"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-emerald-600 transition-all duration-200"
         >
-          <ExternalLink className="h-5 w-5 text-gray-500" />
+          <Home className="h-5 w-5 text-gray-400" />
           <span>Ke Website</span>
         </Link>
+
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200"
+        >
+          <LogOut className="h-5 w-5" />
+          <span>Keluar</span>
+        </button>
       </div>
     </aside>
   );

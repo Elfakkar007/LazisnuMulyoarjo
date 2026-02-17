@@ -9,10 +9,10 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Edit, Trash2, Save, X, GripVertical } from 'lucide-react';
 import { getProgramCategories } from '@/lib/api/client-admin';
-import { 
-  createProgramCategory, 
-  updateProgramCategory, 
-  deleteProgramCategory 
+import {
+  createProgramCategory,
+  updateProgramCategory,
+  deleteProgramCategory
 } from '@/lib/actions/admin';
 
 interface ProgramCategory {
@@ -57,7 +57,7 @@ export default function ProgramCategoriesPage() {
     setLoading(false);
   };
 
-  const totalPercentage = categories.reduce((sum, cat) => 
+  const totalPercentage = categories.reduce((sum, cat) =>
     cat.id !== editingId ? sum + cat.percentage : sum, 0
   ) + (editingId ? formData.percentage : 0);
 
@@ -76,7 +76,7 @@ export default function ProgramCategoriesPage() {
       return;
     }
 
-    const newTotal = editingId 
+    const newTotal = editingId
       ? totalPercentage
       : totalPercentage + formData.percentage;
 
@@ -86,7 +86,7 @@ export default function ProgramCategoriesPage() {
     }
 
     setSubmitting(true);
-    
+
     let result;
     if (editingId) {
       result = await updateProgramCategory(editingId, formData);
@@ -98,9 +98,9 @@ export default function ProgramCategoriesPage() {
       await loadCategories();
       resetForm();
     } else {
-      alert(`Gagal menyimpan: ${result.error}`);
+      alert(`Gagal menyimpan: ${(result as any).message}`);
     }
-    
+
     setSubmitting(false);
   };
 
@@ -125,7 +125,7 @@ export default function ProgramCategoriesPage() {
     if (result.success) {
       await loadCategories();
     } else {
-      alert(`Gagal menghapus: ${result.error}`);
+      alert(`Gagal menghapus: ${(result as any).message}`);
     }
     setSubmitting(false);
   };
@@ -170,46 +170,44 @@ export default function ProgramCategoriesPage() {
       </div>
 
       {/* Total Percentage Warning */}
-      <div className={`p-4 rounded-lg border-2 ${
-        totalPercentage === 100 
-          ? 'bg-green-50 border-green-500' 
+      <div className={`p-4 rounded-lg border-2 ${totalPercentage === 100
+          ? 'bg-green-50 border-green-500'
           : totalPercentage > 100
-          ? 'bg-red-50 border-red-500'
-          : 'bg-yellow-50 border-yellow-500'
-      }`}>
+            ? 'bg-red-50 border-red-500'
+            : 'bg-yellow-50 border-yellow-500'
+        }`}>
         <div className="flex items-center justify-between">
           <div>
             <p className="font-semibold text-gray-900">Total Alokasi Persentase</p>
             <p className="text-sm text-gray-600">
-              {totalPercentage === 100 
-                ? '✓ Total sudah 100%' 
+              {totalPercentage === 100
+                ? '✓ Total sudah 100%'
                 : totalPercentage > 100
-                ? '⚠️ Total melebihi 100%!'
-                : `Masih tersisa ${100 - totalPercentage}%`
+                  ? '⚠️ Total melebihi 100%!'
+                  : `Masih tersisa ${100 - totalPercentage}%`
               }
             </p>
           </div>
           <div className="text-4xl font-extrabold">
             <span className={
-              totalPercentage === 100 
-                ? 'text-green-600' 
+              totalPercentage === 100
+                ? 'text-green-600'
                 : totalPercentage > 100
-                ? 'text-red-600'
-                : 'text-yellow-600'
+                  ? 'text-red-600'
+                  : 'text-yellow-600'
             }>
               {totalPercentage}%
             </span>
           </div>
         </div>
         <div className="mt-3 h-4 bg-gray-200 rounded-full overflow-hidden">
-          <div 
-            className={`h-full transition-all ${
-              totalPercentage === 100 
-                ? 'bg-green-500' 
+          <div
+            className={`h-full transition-all ${totalPercentage === 100
+                ? 'bg-green-500'
                 : totalPercentage > 100
-                ? 'bg-red-500'
-                : 'bg-yellow-500'
-            }`}
+                  ? 'bg-red-500'
+                  : 'bg-yellow-500'
+              }`}
             style={{ width: `${Math.min(totalPercentage, 100)}%` }}
           />
         </div>
@@ -307,22 +305,22 @@ export default function ProgramCategoriesPage() {
             style={{ borderColor: category.color_code }}
           >
             <div className="flex items-center gap-4">
-              <div 
+              <div
                 className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl"
                 style={{ backgroundColor: category.color_code }}
               >
                 {category.percentage}%
               </div>
-              
+
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-gray-900">{category.name}</h3>
                 <div className="flex items-center gap-3 mt-2">
                   <div className="h-3 flex-1 bg-gray-200 rounded-full overflow-hidden max-w-xs">
-                    <div 
+                    <div
                       className="h-full transition-all"
-                      style={{ 
+                      style={{
                         width: `${category.percentage}%`,
-                        backgroundColor: category.color_code 
+                        backgroundColor: category.color_code
                       }}
                     />
                   </div>

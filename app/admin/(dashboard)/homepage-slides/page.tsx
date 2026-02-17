@@ -205,7 +205,7 @@ export default function HomepageSlidesPage() {
                 resetForm();
                 alert(editingId ? 'Slide berhasil diupdate!' : 'Slide berhasil ditambahkan!');
             } else {
-                alert(`Gagal menyimpan: ${result.error}`);
+                alert(`Gagal menyimpan: ${(result as any).message}`);
             }
         } catch (error) {
             console.error('Submit error:', error);
@@ -234,7 +234,7 @@ export default function HomepageSlidesPage() {
         if (!confirm(`Hapus slide "${slide.title}"?`)) return;
 
         setSubmitting(true);
-        
+
         // Delete image if exists
         if (slide.image_url) {
             await deleteFile(slide.image_url);
@@ -246,7 +246,7 @@ export default function HomepageSlidesPage() {
             await loadSlides();
             alert('Slide berhasil dihapus');
         } else {
-            alert(`Gagal menghapus: ${result.error}`);
+            alert(`Gagal menghapus: ${(result as any).message}`);
         }
         setSubmitting(false);
     };
@@ -269,7 +269,7 @@ export default function HomepageSlidesPage() {
         if (result.success) {
             await loadSlides();
         } else {
-            alert(`Gagal update: ${result.error}`);
+            alert(`Gagal update: ${(result as any).message}`);
         }
         setSubmitting(false);
     };
@@ -373,7 +373,7 @@ export default function HomepageSlidesPage() {
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
                                 Gambar Slide (16:9 Ratio) - Rekomendasi: 1920x1080px
                             </label>
-                            
+
                             {imagePreview ? (
                                 <div className="relative w-full aspect-video rounded-lg overflow-hidden border-2 border-gray-200">
                                     <Image
@@ -423,7 +423,7 @@ export default function HomepageSlidesPage() {
                                     </label>
                                 </div>
                             )}
-                            
+
                             <p className="text-xs text-gray-500 mt-2">
                                 Jika tidak ada gambar, akan menggunakan background gradient sebagai fallback
                             </p>
@@ -536,7 +536,7 @@ export default function HomepageSlidesPage() {
                                 ) : (
                                     <div className={`absolute inset-0 bg-gradient-to-br ${formData.background_gradient}`} />
                                 )}
-                                
+
                                 <div className="relative h-full flex items-center p-6">
                                     <div>
                                         <span className="inline-block text-xs font-bold uppercase bg-white/20 px-3 py-1 rounded-full text-white mb-2">
@@ -709,7 +709,7 @@ function SlideCard({ slide, onEdit, onDelete, onToggleActive, disabled }: SlideC
                     ) : (
                         <div className={`absolute inset-0 bg-gradient-to-br ${slide.background_gradient}`} />
                     )}
-                    
+
                     <div className="absolute inset-0 flex items-center p-3">
                         <div>
                             <span className="inline-block text-[10px] font-bold uppercase bg-white/20 px-2 py-0.5 rounded-full text-white">
@@ -749,8 +749,8 @@ function SlideCard({ slide, onEdit, onDelete, onToggleActive, disabled }: SlideC
                         onClick={() => onToggleActive(slide)}
                         disabled={disabled}
                         className={`p-2 rounded-lg transition-colors ${slide.is_active
-                                ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'
-                                : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                            ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
                             }`}
                         title={slide.is_active ? 'Nonaktifkan' : 'Aktifkan'}
                     >

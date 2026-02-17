@@ -62,7 +62,7 @@ export default function MonthlyIncomePage() {
   const loadIncomeData = async () => {
     setLoading(true);
     const data = await getMonthlyIncome(selectedYearId);
-    
+
     const dataMap: Record<number, MonthlyIncome> = {};
     data.forEach(item => {
       dataMap[item.month] = {
@@ -76,7 +76,7 @@ export default function MonthlyIncomePage() {
         jpzis_75_percent: item.jpzis_75_percent,
       };
     });
-    
+
     setIncomeData(dataMap);
     setLoading(false);
   };
@@ -101,7 +101,7 @@ export default function MonthlyIncomePage() {
     if (saving) return;
 
     const data = getValue(month);
-    
+
     // Validation
     if (data.gross_amount < (data.kaleng_wages + data.spb_cost)) {
       alert('Perolehan Bruto harus lebih besar dari Upah Kaleng + SPB');
@@ -122,7 +122,7 @@ export default function MonthlyIncomePage() {
       setEditingMonth(null);
       alert('Data berhasil disimpan!');
     } else {
-      alert(`Gagal menyimpan: ${result.error}`);
+      alert(`Gagal menyimpan: ${(result as any).message}`);
     }
     setSaving(false);
   };

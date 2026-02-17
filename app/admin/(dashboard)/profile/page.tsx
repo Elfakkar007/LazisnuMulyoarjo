@@ -122,7 +122,7 @@ export default function ProfileCMSPage() {
                 // Auto-hide success message
                 setTimeout(() => setSuccess(null), 3000);
             } else {
-                setError(result.error || 'Gagal menyimpan profil');
+                setError((result as any).message || 'Gagal menyimpan profil');
             }
         } catch (err) {
             console.error('Error saving profile:', err);

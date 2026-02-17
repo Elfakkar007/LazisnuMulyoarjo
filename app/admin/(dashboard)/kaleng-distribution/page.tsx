@@ -124,7 +124,7 @@ export default function KalengDistributionPage() {
       alert('Data berhasil disimpan!');
       await loadKalengData();
     } else {
-      alert(`Gagal menyimpan: ${result.error}`);
+      alert(`Gagal menyimpan: ${(result as any).message}`);
     }
     setSaving(false);
   };
@@ -138,12 +138,12 @@ export default function KalengDistributionPage() {
         const distributed = getValue(month, dusun, 'total_distributed');
         const collected = getValue(month, dusun, 'total_collected');
         const notCollected = getValue(month, dusun, 'total_not_collected');
-        
+
         // Convert empty strings to 0 for export
         const distValue = distributed === '' ? 0 : distributed;
         const collValue = collected === '' ? 0 : collected;
         const notCollValue = notCollected === '' ? 0 : notCollected;
-        
+
         csv += `${month},${dusun},${distValue},${collValue},${notCollValue}\n`;
       });
     });

@@ -9,10 +9,10 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Edit, Trash2, Check, X, TrendingUp, Calendar } from 'lucide-react';
 import { getFinancialYears } from '@/lib/api/client-admin';
-import { 
-  createFinancialYear, 
-  updateFinancialYear, 
-  deleteFinancialYear 
+import {
+  createFinancialYear,
+  updateFinancialYear,
+  deleteFinancialYear
 } from '@/lib/actions/admin';
 import { formatCurrency } from '@/lib/utils/helpers';
 
@@ -46,7 +46,7 @@ export default function FinancialYearsPage() {
 
   const handleCreate = async () => {
     if (!newYear || submitting) return;
-    
+
     const yearNum = parseInt(newYear);
     if (isNaN(yearNum) || yearNum < 2020 || yearNum > 2100) {
       alert('Tahun tidak valid');
@@ -66,14 +66,14 @@ export default function FinancialYearsPage() {
       setNewYear('');
       setShowForm(false);
     } else {
-      alert(`Gagal membuat tahun: ${result.error}`);
+      alert(`Gagal membuat tahun: ${(result as any).message}`);
     }
     setSubmitting(false);
   };
 
   const handleToggleActive = async (year: FinancialYear) => {
     if (submitting) return;
-    
+
     setSubmitting(true);
     const result = await updateFinancialYear(year.id, {
       is_active: !year.is_active,
@@ -82,7 +82,7 @@ export default function FinancialYearsPage() {
     if (result.success) {
       await loadYears();
     } else {
-      alert(`Gagal update: ${result.error}`);
+      alert(`Gagal update: ${(result as any).message}`);
     }
     setSubmitting(false);
   };
@@ -98,7 +98,7 @@ export default function FinancialYearsPage() {
     if (result.success) {
       await loadYears();
     } else {
-      alert(`Gagal menghapus: ${result.error}`);
+      alert(`Gagal menghapus: ${(result as any).message}`);
     }
     setSubmitting(false);
   };
@@ -176,20 +176,17 @@ export default function FinancialYearsPage() {
             key={year.id}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`bg-white rounded-xl shadow-md p-6 border-2 transition-all ${
-              year.is_active 
-                ? 'border-emerald-500 shadow-emerald-100' 
+            className={`bg-white rounded-xl shadow-md p-6 border-2 transition-all ${year.is_active
+                ? 'border-emerald-500 shadow-emerald-100'
                 : 'border-gray-200'
-            }`}
+              }`}
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                  year.is_active ? 'bg-emerald-100' : 'bg-gray-100'
-                }`}>
-                  <Calendar className={`w-6 h-6 ${
-                    year.is_active ? 'text-emerald-600' : 'text-gray-600'
-                  }`} />
+                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${year.is_active ? 'bg-emerald-100' : 'bg-gray-100'
+                  }`}>
+                  <Calendar className={`w-6 h-6 ${year.is_active ? 'text-emerald-600' : 'text-gray-600'
+                    }`} />
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900">{year.year}</h3>
@@ -204,11 +201,10 @@ export default function FinancialYearsPage() {
               <button
                 onClick={() => handleToggleActive(year)}
                 disabled={submitting}
-                className={`p-2 rounded-lg transition-colors ${
-                  year.is_active
+                className={`p-2 rounded-lg transition-colors ${year.is_active
                     ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+                  }`}
                 title={year.is_active ? 'Non-aktifkan' : 'Aktifkan'}
               >
                 {year.is_active ? <Check className="w-5 h-5" /> : <X className="w-5 h-5" />}
