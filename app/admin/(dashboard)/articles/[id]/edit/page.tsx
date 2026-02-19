@@ -16,6 +16,7 @@ import { getArticleById } from '@/lib/api/client-admin';
 import { updateArticle } from '@/lib/actions/admin';
 import { generateSlug } from '@/lib/utils/helpers';
 import { createClient } from '@/utils/supabase/client';
+import { useToast } from '@/components/ui/toast-provider';
 
 const CATEGORIES = ['Sosial', 'Kesehatan', 'Keagamaan'];
 
@@ -25,6 +26,7 @@ export default function EditArticlePage() {
     const params = useParams();
     const id = params.id as string;
     const router = useRouter();
+    const { toast, success, error } = useToast();
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -52,7 +54,7 @@ export default function EditArticlePage() {
         const article = await getArticleById(id); // Use destructured id
 
         if (!article) {
-            alert('Artikel tidak ditemukan');
+            error('Artikel tidak ditemukan');
             router.push('/admin/articles');
             return;
         }
@@ -92,7 +94,7 @@ export default function EditArticlePage() {
         if (saving) return;
 
         if (!formData.title.trim() || !formData.content.trim()) {
-            alert('Judul dan konten harus diisi');
+            error('Judul dan konten harus diisi');
             return;
         }
 
@@ -110,7 +112,7 @@ export default function EditArticlePage() {
             const result = await updateArticle(id, articleData);
 
             if (!result.success) {
-                alert(`Gagal menyimpan: ${(result as any).message}`);
+                error(`Gagal menyimpan: ${(result as any).message}`);
                 setSaving(false);
                 return;
             }
@@ -135,11 +137,11 @@ export default function EditArticlePage() {
                 await Promise.all(imagePromises);
             }
 
-            alert('Artikel berhasil diupdate!');
+            success('Artikel berhasil diupdate!');
             router.push('/admin/articles');
-        } catch (error) {
-            console.error('Submit error:', error);
-            alert('Terjadi kesalahan');
+        } catch (err: any) {
+            console.error('Submit error:', err);
+            error('Terjadi kesalahan');
             setSaving(false);
         }
     };

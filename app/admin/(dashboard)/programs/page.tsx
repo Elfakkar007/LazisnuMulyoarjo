@@ -11,6 +11,8 @@ import { Plus, Edit, Trash2, Upload, Download, Check, X, Filter } from 'lucide-r
 import { getFinancialYears, getPrograms, getProgramCategories } from '@/lib/api/client-admin';
 import { createProgram, updateProgram, deleteProgram, bulkCreatePrograms } from '@/lib/actions/admin';
 import { formatCurrency, calculateProgramProgress } from '@/lib/utils/helpers';
+import { useToast } from '@/components/ui/toast-provider';
+import { useConfirm } from '@/components/ui/confirmation-modal';
 
 interface FinancialYear {
   id: string;
@@ -60,6 +62,8 @@ export default function ProgramsPage() {
     is_completed: false,
   });
   const [submitting, setSubmitting] = useState(false);
+  const { toast, success, error } = useToast();
+  const { confirm } = useConfirm();
 
   useEffect(() => {
     loadInitialData();
@@ -101,17 +105,17 @@ export default function ProgramsPage() {
 
     // Validation
     if (!formData.name.trim()) {
-      alert('Nama program harus diisi');
+      error('Nama program harus diisi');
       return;
     }
 
     if (!formData.category_id) {
-      alert('Kategori harus dipilih');
+      error('Kategori harus dipilih');
       return;
     }
 
     if (formData.budget < 0) {
-      alert('Anggaran tidak valid');
+      error('Anggaran tidak valid');
       return;
     }
 
@@ -130,8 +134,9 @@ export default function ProgramsPage() {
     if (result.success) {
       await loadPrograms();
       resetForm();
+      success(editingId ? 'Program berhasil diupdate' : 'Program berhasil dibuat');
     } else {
-      alert(`Gagal menyimpan: ${(result as any).message}`);
+      error(`Gagal menyimpan: ${(result as any).message}`);
     }
 
     setSubmitting(false);
@@ -154,17 +159,23 @@ export default function ProgramsPage() {
   };
 
   const handleDelete = async (program: any) => {
-    if (!confirm(`Hapus program "${program.name}"?`)) {
-      return;
-    }
+    const isConfirmed = await confirm({
+      title: 'Hapus Program',
+      message: `Apakah Anda yakin ingin menghapus program "${program.name}"?`,
+      confirmText: 'Hapus',
+      variant: 'danger'
+    });
+
+    if (!isConfirmed) return;
 
     setSubmitting(true);
     const result = await deleteProgram(program.id);
 
     if (result.success) {
       await loadPrograms();
+      success('Program berhasil dihapus');
     } else {
-      alert(`Gagal menghapus: ${(result as any).message}`);
+      error(`Gagal menghapus: ${(result as any).message}`);
     }
     setSubmitting(false);
   };

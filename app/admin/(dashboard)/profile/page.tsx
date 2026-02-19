@@ -21,6 +21,7 @@ import { getOrganizationProfile, getStructureData } from '@/lib/api/client-admin
 import {
     updateOrganizationProfile,
 } from '@/lib/actions/admin';
+import { useToast } from '@/components/ui/toast-provider';
 
 // Import components
 import { GeneralInfoSection } from '@/components/admin/profile/general-info-section';
@@ -59,8 +60,9 @@ export default function ProfileCMSPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [activeTab, setActiveTab] = useState<'general' | 'contact' | 'structure'>('general');
-    const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState<string | null>(null);
+    // Removed local error/success states
+    const { toast, success, error } = useToast();
+
 
     // Profile data
     const [profile, setProfile] = useState<OrganizationProfile | null>(null);
@@ -88,7 +90,7 @@ export default function ProfileCMSPage() {
             }
         } catch (err) {
             console.error('Error loading data:', err);
-            setError('Gagal memuat data');
+            error('Gagal memuat data');
         } finally {
             setLoading(false);
         }
@@ -98,8 +100,7 @@ export default function ProfileCMSPage() {
         if (!profile) return;
 
         setSaving(true);
-        setError(null);
-        setSuccess(null);
+        // Removed local error/success state resets
 
         try {
             // Convert social_media_links to JSON format for database
@@ -116,17 +117,14 @@ export default function ProfileCMSPage() {
             const result = await updateOrganizationProfile(dataToSave);
 
             if (result.success) {
-                setSuccess('Profil berhasil diperbarui!');
+                success('Profil berhasil diperbarui!');
                 await loadData();
-
-                // Auto-hide success message
-                setTimeout(() => setSuccess(null), 3000);
             } else {
-                setError((result as any).message || 'Gagal menyimpan profil');
+                error((result as any).message || 'Gagal menyimpan profil');
             }
         } catch (err) {
             console.error('Error saving profile:', err);
-            setError('Terjadi kesalahan saat menyimpan');
+            error('Terjadi kesalahan saat menyimpan');
         } finally {
             setSaving(false);
         }
@@ -184,34 +182,7 @@ export default function ProfileCMSPage() {
                 </div>
             </div>
 
-            {/* Success/Error Messages */}
-            {success && (
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3"
-                >
-                    <Save className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                        <p className="text-sm font-semibold text-green-900">Berhasil</p>
-                        <p className="text-sm text-green-700 mt-1">{success}</p>
-                    </div>
-                </motion.div>
-            )}
-
-            {error && (
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3"
-                >
-                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                        <p className="text-sm font-semibold text-red-900">Gagal</p>
-                        <p className="text-sm text-red-700 mt-1">{error}</p>
-                    </div>
-                </motion.div>
-            )}
+            {/* Success/Error Messages - Removed local messages, now handled by useToast */}
 
             {/* Tabs */}
             <div className="bg-white rounded-xl shadow-md overflow-hidden">

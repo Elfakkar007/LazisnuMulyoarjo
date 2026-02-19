@@ -11,6 +11,7 @@ import { DollarSign, Save, TrendingUp } from 'lucide-react';
 import { getFinancialYears, getMonthlyIncome } from '@/lib/api/client-admin';
 import { upsertMonthlyIncome } from '@/lib/actions/admin';
 import { formatCurrency, getMonthName } from '@/lib/utils/helpers';
+import { useToast } from '@/components/ui/toast-provider';
 
 interface FinancialYear {
   id: string;
@@ -38,6 +39,7 @@ export default function MonthlyIncomePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editingMonth, setEditingMonth] = useState<number | null>(null);
+  const { toast, success, error } = useToast();
 
   useEffect(() => {
     loadYears();
@@ -104,7 +106,7 @@ export default function MonthlyIncomePage() {
 
     // Validation
     if (data.gross_amount < (data.kaleng_wages + data.spb_cost)) {
-      alert('Perolehan Bruto harus lebih besar dari Upah Kaleng + SPB');
+      error('Perolehan Bruto harus lebih besar dari Upah Kaleng + SPB');
       return;
     }
 
@@ -120,9 +122,9 @@ export default function MonthlyIncomePage() {
     if (result.success) {
       await loadIncomeData();
       setEditingMonth(null);
-      alert('Data berhasil disimpan!');
+      success('Data pemasukan berhasil disimpan!');
     } else {
-      alert(`Gagal menyimpan: ${(result as any).message}`);
+      error(`Gagal menyimpan: ${(result as any).message}`);
     }
     setSaving(false);
   };

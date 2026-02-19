@@ -14,6 +14,8 @@ import {
   updateProgramCategory,
   deleteProgramCategory
 } from '@/lib/actions/admin';
+import { useToast } from '@/components/ui/toast-provider';
+import { useConfirm } from '@/components/ui/confirmation-modal';
 
 interface ProgramCategory {
   id: string;
@@ -45,6 +47,8 @@ export default function ProgramCategoriesPage() {
     color_code: DEFAULT_COLORS[0],
   });
   const [submitting, setSubmitting] = useState(false);
+  const { toast, success, error } = useToast();
+  const { confirm } = useConfirm();
 
   useEffect(() => {
     loadCategories();
@@ -67,12 +71,12 @@ export default function ProgramCategoriesPage() {
 
     // Validation
     if (!formData.name.trim()) {
-      alert('Nama kategori harus diisi');
+      error('Nama kategori harus diisi');
       return;
     }
 
     if (formData.percentage < 0 || formData.percentage > 100) {
-      alert('Persentase harus antara 0-100');
+      error('Persentase harus antara 0-100');
       return;
     }
 
@@ -81,7 +85,7 @@ export default function ProgramCategoriesPage() {
       : totalPercentage + formData.percentage;
 
     if (newTotal > 100) {
-      alert(`Total persentase akan melebihi 100% (${newTotal}%). Sesuaikan persentase.`);
+      error(`Total persentase akan melebihi 100% (${newTotal}%). Sesuaikan persentase.`);
       return;
     }
 
@@ -97,8 +101,9 @@ export default function ProgramCategoriesPage() {
     if (result.success) {
       await loadCategories();
       resetForm();
+      success(editingId ? 'Kategori berhasil diupdate' : 'Kategori berhasil dibuat');
     } else {
-      alert(`Gagal menyimpan: ${(result as any).message}`);
+      error(`Gagal menyimpan: ${(result as any).message}`);
     }
 
     setSubmitting(false);
@@ -115,17 +120,23 @@ export default function ProgramCategoriesPage() {
   };
 
   const handleDelete = async (category: ProgramCategory) => {
-    if (!confirm(`Hapus kategori "${category.name}"? Program terkait akan ikut terhapus.`)) {
-      return;
-    }
+    const isConfirmed = await confirm({
+      title: 'Hapus Kategori',
+      message: `Apakah Anda yakin ingin menghapus kategori "${category.name}"? Program terkait akan ikut terhapus.`,
+      confirmText: 'Hapus',
+      variant: 'danger'
+    });
+
+    if (!isConfirmed) return;
 
     setSubmitting(true);
     const result = await deleteProgramCategory(category.id);
 
     if (result.success) {
       await loadCategories();
+      success('Kategori berhasil dihapus');
     } else {
-      alert(`Gagal menghapus: ${(result as any).message}`);
+      error(`Gagal menghapus: ${(result as any).message}`);
     }
     setSubmitting(false);
   };
@@ -171,10 +182,10 @@ export default function ProgramCategoriesPage() {
 
       {/* Total Percentage Warning */}
       <div className={`p-4 rounded-lg border-2 ${totalPercentage === 100
-          ? 'bg-green-50 border-green-500'
-          : totalPercentage > 100
-            ? 'bg-red-50 border-red-500'
-            : 'bg-yellow-50 border-yellow-500'
+        ? 'bg-green-50 border-green-500'
+        : totalPercentage > 100
+          ? 'bg-red-50 border-red-500'
+          : 'bg-yellow-50 border-yellow-500'
         }`}>
         <div className="flex items-center justify-between">
           <div>
@@ -203,10 +214,10 @@ export default function ProgramCategoriesPage() {
         <div className="mt-3 h-4 bg-gray-200 rounded-full overflow-hidden">
           <div
             className={`h-full transition-all ${totalPercentage === 100
-                ? 'bg-green-500'
-                : totalPercentage > 100
-                  ? 'bg-red-500'
-                  : 'bg-yellow-500'
+              ? 'bg-green-500'
+              : totalPercentage > 100
+                ? 'bg-red-500'
+                : 'bg-yellow-500'
               }`}
             style={{ width: `${Math.min(totalPercentage, 100)}%` }}
           />

@@ -28,6 +28,8 @@ import {
     reorderHomepageSlides,
 } from '@/lib/actions/admin';
 import { uploadSlideImage, deleteFile } from '@/lib/utils/storage';
+import { useToast } from '@/components/ui/toast-provider';
+import { useConfirm } from '@/components/ui/confirmation-modal';
 import Image from 'next/image';
 
 interface HomepageSlide {
@@ -90,6 +92,8 @@ export default function HomepageSlidesPage() {
     const [submitting, setSubmitting] = useState(false);
     const [uploadingImage, setUploadingImage] = useState(false);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const { toast, success, error } = useToast();
+    const { confirm } = useConfirm();
 
     useEffect(() => {
         loadSlides();
@@ -99,14 +103,14 @@ export default function HomepageSlidesPage() {
         setLoading(true);
         const supabase = createClient();
 
-        const { data, error } = await supabase
+        const { data, error: fetchError } = await supabase
             .from('homepage_slides')
             .select('*')
             .order('slide_order', { ascending: true });
 
-        if (error) {
-            console.error('Error loading slides:', error);
-            alert('Gagal memuat data slides');
+        if (fetchError) {
+            console.error('Error loading slides:', fetchError);
+            error('Gagal memuat data slides');
         } else {
             setSlides(data || []);
         }
@@ -133,10 +137,10 @@ export default function HomepageSlidesPage() {
         setUploadingImage(true);
 
         try {
-            const { url, error } = await uploadSlideImage(file);
+            const { url, error: uploadError } = await uploadSlideImage(file);
 
-            if (error || !url) {
-                alert(`Gagal upload gambar: ${error}`);
+            if (uploadError || !url) {
+                error(`Gagal upload gambar: ${uploadError}`);
                 return;
             }
 
@@ -147,9 +151,9 @@ export default function HomepageSlidesPage() {
 
             setFormData({ ...formData, image_url: url });
             setImagePreview(url);
-        } catch (error) {
-            console.error('Error uploading image:', error);
-            alert('Terjadi kesalahan saat upload gambar');
+        } catch (err) {
+            console.error('Error uploading image:', err);
+            error('Terjadi kesalahan saat upload gambar');
         } finally {
             setUploadingImage(false);
         }
@@ -158,7 +162,14 @@ export default function HomepageSlidesPage() {
     const handleRemoveImage = async () => {
         if (!formData.image_url) return;
 
-        if (confirm('Hapus gambar ini?')) {
+        const isConfirmed = await confirm({
+            title: 'Hapus Gambar',
+            message: 'Hapus gambar ini?',
+            confirmText: 'Hapus',
+            variant: 'danger'
+        });
+
+        if (isConfirmed) {
             // If it's an existing slide, just remove from form (don't delete from storage yet)
             // Delete will happen on save
             setFormData({ ...formData, image_url: '' });
@@ -172,7 +183,7 @@ export default function HomepageSlidesPage() {
 
         // Validation
         if (!formData.badge.trim() || !formData.title.trim()) {
-            alert('Badge dan Judul harus diisi');
+            error('Badge dan Judul harus diisi');
             return;
         }
 
@@ -180,7 +191,7 @@ export default function HomepageSlidesPage() {
         if (!editingId && formData.is_active) {
             const activeCount = slides.filter(s => s.is_active).length;
             if (activeCount >= MAX_ACTIVE_SLIDES) {
-                alert(`Maksimal ${MAX_ACTIVE_SLIDES} slide aktif. Nonaktifkan slide lain terlebih dahulu.`);
+                error(`Maksimal ${MAX_ACTIVE_SLIDES} slide aktif. Nonaktifkan slide lain terlebih dahulu.`);
                 return;
             }
         }
@@ -203,13 +214,13 @@ export default function HomepageSlidesPage() {
             if (result.success) {
                 await loadSlides();
                 resetForm();
-                alert(editingId ? 'Slide berhasil diupdate!' : 'Slide berhasil ditambahkan!');
+                success(editingId ? 'Slide berhasil diupdate!' : 'Slide berhasil ditambahkan!');
             } else {
-                alert(`Gagal menyimpan: ${(result as any).message}`);
+                error(`Gagal menyimpan: ${(result as any).message}`);
             }
-        } catch (error) {
-            console.error('Submit error:', error);
-            alert('Terjadi kesalahan');
+        } catch (err) {
+            console.error('Submit error:', err);
+            error('Terjadi kesalahan');
         } finally {
             setSubmitting(false);
         }
@@ -231,7 +242,14 @@ export default function HomepageSlidesPage() {
     };
 
     const handleDelete = async (slide: HomepageSlide) => {
-        if (!confirm(`Hapus slide "${slide.title}"?`)) return;
+        const isConfirmed = await confirm({
+            title: 'Hapus Slide',
+            message: `Hapus slide "${slide.title}"?`,
+            confirmText: 'Hapus',
+            variant: 'danger'
+        });
+
+        if (!isConfirmed) return;
 
         setSubmitting(true);
 
@@ -244,9 +262,9 @@ export default function HomepageSlidesPage() {
 
         if (result.success) {
             await loadSlides();
-            alert('Slide berhasil dihapus');
+            success('Slide berhasil dihapus');
         } else {
-            alert(`Gagal menghapus: ${(result as any).message}`);
+            error(`Gagal menghapus: ${(result as any).message}`);
         }
         setSubmitting(false);
     };
@@ -256,7 +274,7 @@ export default function HomepageSlidesPage() {
         if (!slide.is_active) {
             const activeCount = slides.filter(s => s.is_active).length;
             if (activeCount >= MAX_ACTIVE_SLIDES) {
-                alert(`Maksimal ${MAX_ACTIVE_SLIDES} slide aktif`);
+                error(`Maksimal ${MAX_ACTIVE_SLIDES} slide aktif`);
                 return;
             }
         }
@@ -287,7 +305,7 @@ export default function HomepageSlidesPage() {
         const result = await reorderHomepageSlides(updates);
 
         if (!result.success) {
-            alert('Gagal menyimpan urutan');
+            error('Gagal menyimpan urutan');
             await loadSlides(); // Reload to revert
         }
     };

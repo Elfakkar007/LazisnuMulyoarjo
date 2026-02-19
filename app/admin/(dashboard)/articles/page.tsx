@@ -24,6 +24,8 @@ import {
 import { getArticles as getArticlesFromDB } from '@/lib/api/client-admin';
 import { deleteArticle, publishArticle, unpublishArticle } from '@/lib/actions/admin';
 import { formatDate, getCategoryColor } from '@/lib/utils/helpers';
+import { useToast } from '@/components/ui/toast-provider';
+import { useConfirm } from '@/components/ui/confirmation-modal';
 
 const CATEGORIES = ['Sosial', 'Kesehatan', 'Keagamaan'];
 
@@ -49,6 +51,8 @@ export default function ArticlesPage() {
     const [selectedStatus, setSelectedStatus] = useState<string>('all');
     const [selectedArticles, setSelectedArticles] = useState<Set<string>>(new Set());
     const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
+    const { toast, success, error } = useToast();
+    const { confirm } = useConfirm();
 
     useEffect(() => {
         loadArticles();
@@ -62,14 +66,21 @@ export default function ArticlesPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Hapus artikel ini? Data tidak bisa dikembalikan.')) return;
+        const isConfirmed = await confirm({
+            title: 'Hapus Artikel',
+            message: 'Apakah Anda yakin ingin menghapus artikel ini? Data tidak bisa dikembalikan.',
+            confirmText: 'Hapus',
+            variant: 'danger'
+        });
+
+        if (!isConfirmed) return;
 
         const result = await deleteArticle(id);
         if (result.success) {
             await loadArticles();
-            alert('Artikel berhasil dihapus');
+            success('Artikel berhasil dihapus');
         } else {
-            alert(`Gagal menghapus: ${(result as any).message}`);
+            error(`Gagal menghapus: ${(result as any).message}`);
         }
     };
 
@@ -80,8 +91,9 @@ export default function ArticlesPage() {
 
         if (result.success) {
             await loadArticles();
+            success(article.is_published ? 'Artikel ditarik ke draft' : 'Artikel dipublikasi');
         } else {
-            alert(`Gagal: ${(result as any).message}`);
+            error(`Gagal: ${(result as any).message}`);
         }
     };
 
@@ -106,14 +118,21 @@ export default function ArticlesPage() {
     const handleBulkDelete = async () => {
         if (selectedArticles.size === 0) return;
 
-        if (!confirm(`Hapus ${selectedArticles.size} artikel?`)) return;
+        const isConfirmed = await confirm({
+            title: 'Hapus Banyak Artikel',
+            message: `Apakah Anda yakin ingin menghapus ${selectedArticles.size} artikel terpilih?`,
+            confirmText: `Hapus (${selectedArticles.size})`,
+            variant: 'danger'
+        });
+
+        if (!isConfirmed) return;
 
         const promises = Array.from(selectedArticles).map(id => deleteArticle(id));
         await Promise.all(promises);
 
         setSelectedArticles(new Set());
         await loadArticles();
-        alert('Artikel berhasil dihapus');
+        success(`${selectedArticles.size} artikel berhasil dihapus`);
     };
 
     const handleBulkPublish = async () => {
@@ -130,7 +149,7 @@ export default function ArticlesPage() {
         await Promise.all(promises);
         setSelectedArticles(new Set());
         await loadArticles();
-        alert('Artikel berhasil dipublikasi');
+        success('Artikel terpilih berhasil dipublikasi');
     };
 
     // Filter articles

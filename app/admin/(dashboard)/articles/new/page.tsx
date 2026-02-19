@@ -15,11 +15,13 @@ import { GalleryImages, type GalleryImage } from '@/components/admin/articles/ga
 import { createArticle } from '@/lib/actions/admin';
 import { generateSlug } from '@/lib/utils/helpers';
 import { createClient } from '@/utils/supabase/client';
+import { useToast } from '@/components/ui/toast-provider';
 
 const CATEGORIES = ['Sosial', 'Kesehatan', 'Keagamaan'];
 
 export default function NewArticlePage() {
     const router = useRouter();
+    const { toast, success, error } = useToast();
     const [saving, setSaving] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
@@ -49,12 +51,12 @@ export default function NewArticlePage() {
 
         // Validation
         if (!formData.title.trim()) {
-            alert('Judul harus diisi');
+            error('Judul harus diisi');
             return;
         }
 
         if (!formData.content.trim()) {
-            alert('Konten harus diisi');
+            error('Konten harus diisi');
             return;
         }
 
@@ -71,7 +73,7 @@ export default function NewArticlePage() {
             const result = await createArticle(articleData);
 
             if (!result.success) {
-                alert(`Gagal menyimpan: ${(result as any).message}`);
+                error(`Gagal menyimpan: ${(result as any).message}`);
                 setSaving(false);
                 return;
             }
@@ -86,7 +88,7 @@ export default function NewArticlePage() {
                 .single();
 
             if (!article) {
-                alert('Artikel tersimpan tapi gagal mendapatkan ID');
+                error('Artikel tersimpan tapi gagal mendapatkan ID');
                 router.push('/admin/articles');
                 return;
             }
@@ -105,11 +107,11 @@ export default function NewArticlePage() {
                 await Promise.all(imagePromises);
             }
 
-            alert(publish ? 'Artikel berhasil dipublikasi!' : 'Artikel berhasil disimpan sebagai draft!');
+            success(publish ? 'Artikel berhasil dipublikasi!' : 'Artikel berhasil disimpan sebagai draft!');
             router.push('/admin/articles');
-        } catch (error) {
-            console.error('Submit error:', error);
-            alert('Terjadi kesalahan saat menyimpan');
+        } catch (err: any) {
+            console.error('Submit error:', err);
+            error('Terjadi kesalahan saat menyimpan');
             setSaving(false);
         }
     };

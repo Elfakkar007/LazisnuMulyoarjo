@@ -15,6 +15,8 @@ import {
   deleteFinancialYear
 } from '@/lib/actions/admin';
 import { formatCurrency } from '@/lib/utils/helpers';
+import { useToast } from '@/components/ui/toast-provider';
+import { useConfirm } from '@/components/ui/confirmation-modal';
 
 interface FinancialYear {
   id: string;
@@ -32,6 +34,8 @@ export default function FinancialYearsPage() {
   const [editingYear, setEditingYear] = useState<FinancialYear | null>(null);
   const [newYear, setNewYear] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const { toast, success, error } = useToast();
+  const { confirm } = useConfirm();
 
   useEffect(() => {
     loadYears();
@@ -49,7 +53,7 @@ export default function FinancialYearsPage() {
 
     const yearNum = parseInt(newYear);
     if (isNaN(yearNum) || yearNum < 2020 || yearNum > 2100) {
-      alert('Tahun tidak valid');
+      error('Tahun tidak valid');
       return;
     }
 
@@ -65,8 +69,9 @@ export default function FinancialYearsPage() {
       await loadYears();
       setNewYear('');
       setShowForm(false);
+      success('Tahun keuangan berhasil dibuat');
     } else {
-      alert(`Gagal membuat tahun: ${(result as any).message}`);
+      error(`Gagal membuat tahun: ${(result as any).message}`);
     }
     setSubmitting(false);
   };
@@ -82,23 +87,29 @@ export default function FinancialYearsPage() {
     if (result.success) {
       await loadYears();
     } else {
-      alert(`Gagal update: ${(result as any).message}`);
+      error(`Gagal update: ${(result as any).message}`);
     }
     setSubmitting(false);
   };
 
   const handleDelete = async (year: FinancialYear) => {
-    if (!confirm(`Hapus tahun ${year.year}? Data terkait akan ikut terhapus.`)) {
-      return;
-    }
+    const isConfirmed = await confirm({
+      title: 'Hapus Tahun Keuangan',
+      message: `Hapus tahun ${year.year}? Data terkait akan ikut terhapus.`,
+      confirmText: 'Hapus',
+      variant: 'danger'
+    });
+
+    if (!isConfirmed) return;
 
     setSubmitting(true);
     const result = await deleteFinancialYear(year.id);
 
     if (result.success) {
       await loadYears();
+      success('Tahun keuangan berhasil dihapus');
     } else {
-      alert(`Gagal menghapus: ${(result as any).message}`);
+      error(`Gagal menghapus: ${(result as any).message}`);
     }
     setSubmitting(false);
   };
@@ -177,8 +188,8 @@ export default function FinancialYearsPage() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className={`bg-white rounded-xl shadow-md p-6 border-2 transition-all ${year.is_active
-                ? 'border-emerald-500 shadow-emerald-100'
-                : 'border-gray-200'
+              ? 'border-emerald-500 shadow-emerald-100'
+              : 'border-gray-200'
               }`}
           >
             <div className="flex items-start justify-between mb-4">
@@ -202,8 +213,8 @@ export default function FinancialYearsPage() {
                 onClick={() => handleToggleActive(year)}
                 disabled={submitting}
                 className={`p-2 rounded-lg transition-colors ${year.is_active
-                    ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 title={year.is_active ? 'Non-aktifkan' : 'Aktifkan'}
               >

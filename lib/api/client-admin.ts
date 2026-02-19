@@ -260,7 +260,7 @@ export async function getDashboardStats() {
     .from('financial_years')
     .select('*')
     .eq('is_active', true)
-    .single();
+    .maybeSingle();
 
   if (!activeYear) {
     return {
@@ -325,7 +325,7 @@ export async function getRecentTransactions(limit: number = 5) {
     .from('financial_years')
     .select('*')
     .eq('is_active', true)
-    .single();
+    .maybeSingle();
 
   if (!activeYear) return [];
 
@@ -374,7 +374,7 @@ export async function getMonthlyIncomeChart(months: number = 6) {
     .from('financial_years')
     .select('*')
     .eq('is_active', true)
-    .single();
+    .maybeSingle();
 
   if (!activeYear) return [];
 
@@ -409,7 +409,7 @@ export async function getExpenseDistribution() {
     .from('financial_years')
     .select('*')
     .eq('is_active', true)
-    .single();
+    .maybeSingle();
 
   if (!activeYear) return [];
 

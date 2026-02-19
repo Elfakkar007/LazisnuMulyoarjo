@@ -11,6 +11,8 @@ import { Plus, Save, Trash2, GripVertical, Download } from 'lucide-react';
 import { getFinancialYears, getProgramCategories, getFinancialTransactions } from '@/lib/api/client-admin';
 import { bulkUpsertFinancialTransactions } from '@/lib/actions/admin';
 import { formatCurrency, formatDate } from '@/lib/utils/helpers';
+import { useToast } from '@/components/ui/toast-provider';
+import { useConfirm } from '@/components/ui/confirmation-modal';
 
 interface FinancialYear {
   id: string;
@@ -42,6 +44,8 @@ export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { toast, success, error } = useToast();
+  const { confirm } = useConfirm();
 
   useEffect(() => {
     loadInitialData();
@@ -130,8 +134,15 @@ export default function TransactionsPage() {
     ));
   };
 
-  const deleteRow = (id: string) => {
-    if (!confirm('Hapus transaksi ini?')) return;
+  const deleteRow = async (id: string) => {
+    const isConfirmed = await confirm({
+      title: 'Hapus Transaksi',
+      message: 'Apakah Anda yakin ingin menghapus transaksi ini?',
+      confirmText: 'Hapus',
+      variant: 'danger'
+    });
+
+    if (!isConfirmed) return;
     setTransactions(transactions.filter(row => row.id !== id));
   };
 
@@ -166,21 +177,21 @@ export default function TransactionsPage() {
       const result = await bulkUpsertFinancialTransactions(items);
 
       if (result.success) {
-        alert('Data berhasil disimpan!');
+        success('Data transaksi berhasil disimpan!');
         await loadTransactions();
       } else {
-        alert(`Gagal menyimpan: ${(result as any).message}`);
+        error(`Gagal menyimpan: ${(result as any).message}`);
       }
-    } catch (error) {
-      console.error('Save error:', error);
-      alert('Terjadi kesalahan saat menyimpan');
+    } catch (err: any) {
+      console.error('Save error:', err);
+      error('Terjadi kesalahan saat menyimpan');
     } finally {
       setSaving(false);
     }
   };
 
   const handleExportPDF = () => {
-    alert('Fitur export PDF akan segera tersedia');
+    toast('Fitur export PDF akan segera tersedia', 'info');
   };
 
   const calculatedTransactions = recalculateBalances();

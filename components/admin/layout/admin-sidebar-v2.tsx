@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useConfirm } from '@/components/ui/confirmation-modal';
 import {
   LayoutDashboard,
   Building2,
@@ -59,8 +60,17 @@ export default function AdminSidebarV2({ onClose, isMobile = false }: AdminSideb
     fetchLogo();
   }, []);
 
-  const handleLogout = () => {
-    if (confirm('Apakah Anda yakin ingin keluar?')) {
+  const { confirm } = useConfirm();
+
+  const handleLogout = async () => {
+    const isConfirmed = await confirm({
+      title: 'Konfirmasi Keluar',
+      message: 'Apakah Anda yakin ingin keluar dari aplikasi?',
+      confirmText: 'Ya, Keluar',
+      variant: 'danger'
+    });
+
+    if (isConfirmed) {
       window.location.href = '/api/auth/signout';
     }
   };
