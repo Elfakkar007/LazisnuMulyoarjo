@@ -26,17 +26,48 @@ interface AdminSidebarProps {
   isMobile?: boolean;
 }
 
-const menuItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
-  { icon: Building2, label: 'Profil Organisasi', href: '/admin/profile' },
-  { icon: Calendar, label: 'Tahun Keuangan', href: '/admin/financial-years' },
-  { icon: Package, label: 'Distribusi Kaleng', href: '/admin/kaleng-distribution' },
-  { icon: TrendingUp, label: 'Pemasukan Bulanan', href: '/admin/monthly-income' },
-  { icon: FolderKanban, label: 'Kategori Program', href: '/admin/program-categories' },
-  { icon: Briefcase, label: 'Program Kerja', href: '/admin/programs' },
-  { icon: Receipt, label: 'Rincian Pengeluaran', href: '/admin/transactions' },
-  { icon: FileText, label: 'Artikel Kegiatan', href: '/admin/articles' },
-  { icon: ImageIcon, label: 'Homepage Slides', href: '/admin/homepage-slides' },
+type MenuItem = {
+  icon: any;
+  label: string;
+  href: string;
+};
+
+type MenuGroup = {
+  title: string;
+  items: MenuItem[];
+};
+
+const menuGroups: MenuGroup[] = [
+  {
+    title: 'Overview',
+    items: [
+      { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
+    ]
+  },
+  {
+    title: 'Operasional',
+    items: [
+      { icon: Receipt, label: 'Transaksi', href: '/admin/transactions' },
+      { icon: Briefcase, label: 'Program Kerja', href: '/admin/programs' },
+      { icon: FileText, label: 'Artikel Kegiatan', href: '/admin/articles' },
+    ]
+  },
+  {
+    title: 'Laporan',
+    items: [
+      { icon: TrendingUp, label: 'Pemasukan Bulanan', href: '/admin/monthly-income' },
+      { icon: Package, label: 'Distribusi Kaleng', href: '/admin/kaleng-distribution' },
+    ]
+  },
+  {
+    title: 'Konfigurasi',
+    items: [
+      { icon: Calendar, label: 'Tahun Keuangan', href: '/admin/financial-years' },
+      { icon: FolderKanban, label: 'Kategori Program', href: '/admin/program-categories' },
+      { icon: ImageIcon, label: 'Homepage Slides', href: '/admin/homepage-slides' },
+      { icon: Building2, label: 'Profil Organisasi', href: '/admin/profile' },
+    ]
+  },
 ];
 
 export default function AdminSidebarV2({ onClose, isMobile = false }: AdminSidebarProps) {
@@ -111,33 +142,42 @@ export default function AdminSidebarV2({ onClose, isMobile = false }: AdminSideb
 
       {/* Navigation Menu */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
-        <div className="space-y-0.5">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href;
-            const Icon = item.icon;
+        <div className="space-y-6">
+          {menuGroups.map((group, groupIndex) => (
+            <div key={groupIndex}>
+              <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                {group.title}
+              </h3>
+              <div className="space-y-0.5">
+                {group.items.map((item) => {
+                  const isActive = pathname === item.href;
+                  const Icon = item.icon;
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                className={`
-                  group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200
-                  ${isActive
-                    ? 'bg-emerald-50 text-emerald-700'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                  }
-                `}
-              >
-                <Icon className={`h-5 w-5 flex-shrink-0 transition-colors ${isActive ? 'text-emerald-600' : 'text-gray-400 group-hover:text-gray-600'
-                  }`} />
-                <span className="truncate">{item.label}</span>
-                {isActive && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-600"></div>
-                )}
-              </Link>
-            );
-          })}
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={onClose}
+                      className={`
+                        group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200
+                        ${isActive
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                        }
+                      `}
+                    >
+                      <Icon className={`h-5 w-5 flex-shrink-0 transition-colors ${isActive ? 'text-emerald-600' : 'text-gray-400 group-hover:text-gray-600'
+                        }`} />
+                      <span className="truncate">{item.label}</span>
+                      {isActive && (
+                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-600"></div>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </nav>
 

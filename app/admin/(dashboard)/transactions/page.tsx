@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Save, Trash2, GripVertical, Download } from 'lucide-react';
-import { getFinancialYears, getProgramCategories, getFinancialTransactions } from '@/lib/api/client-admin';
+import { getFinancialYears, getProgramCategories, getFinancialTransactions, getPrograms } from '@/lib/api/client-admin';
 import { bulkUpsertFinancialTransactions } from '@/lib/actions/admin';
 import { formatCurrency, formatDate } from '@/lib/utils/helpers';
 import { useToast } from '@/components/ui/toast-provider';
@@ -33,7 +33,14 @@ interface TransactionRow {
   transaction_type: 'income' | 'expense';
   amount: number;
   transaction_date: string;
+  program_id?: string | null;
   balance?: number;
+}
+
+interface Program {
+  id: string;
+  name: string;
+  category_id: string;
 }
 
 export default function TransactionsPage() {
@@ -41,6 +48,7 @@ export default function TransactionsPage() {
   const [categories, setCategories] = useState<ProgramCategory[]>([]);
   const [selectedYearId, setSelectedYearId] = useState<string>('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
+  const [programs, setPrograms] = useState<Program[]>([]);
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -80,7 +88,12 @@ export default function TransactionsPage() {
   };
 
   const loadTransactions = async () => {
-    const data = await getFinancialTransactions(selectedYearId, selectedCategoryId);
+    const [data, programsData] = await Promise.all([
+      getFinancialTransactions(selectedYearId, selectedCategoryId),
+      getPrograms(selectedYearId)
+    ]);
+
+    setPrograms(programsData || []);
 
     // Convert to editable format and calculate running balance
     let balance = 0;
@@ -97,6 +110,7 @@ export default function TransactionsPage() {
         transaction_type: item.transaction_type,
         amount: item.amount,
         transaction_date: item.transaction_date,
+        program_id: item.program_id,
         balance: balance,
       };
     });
@@ -111,6 +125,7 @@ export default function TransactionsPage() {
       transaction_type: 'expense',
       amount: 0,
       transaction_date: new Date().toISOString().split('T')[0],
+      program_id: null,
     };
     setTransactions([...transactions, newRow]);
   };
@@ -124,6 +139,7 @@ export default function TransactionsPage() {
       transaction_type: 'income',
       amount: 0,
       transaction_date: new Date().toISOString().split('T')[0],
+      program_id: null,
     };
     setTransactions([newRow, ...transactions]);
   };
@@ -172,6 +188,7 @@ export default function TransactionsPage() {
         description: row.description,
         amount: row.amount,
         transaction_date: row.transaction_date,
+        program_id: row.program_id,
       }));
 
       const result = await bulkUpsertFinancialTransactions(items);
@@ -326,6 +343,7 @@ export default function TransactionsPage() {
                 <th className="px-2 py-3 w-8"></th>
                 <th className="px-4 py-3 text-left font-bold">Tanggal</th>
                 <th className="px-4 py-3 text-left font-bold">Keterangan</th>
+                <th className="px-4 py-3 text-left font-bold w-48">Program (Opsional)</th>
                 <th className="px-4 py-3 text-right font-bold">Debet</th>
                 <th className="px-4 py-3 text-right font-bold">Kredit</th>
                 <th className="px-4 py-3 text-right font-bold bg-gray-800">Saldo</th>
@@ -354,6 +372,25 @@ export default function TransactionsPage() {
                       className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-500"
                       placeholder="Keterangan transaksi..."
                     />
+                  </td>
+                  <td className="px-4 py-3">
+                    {row.transaction_type === 'expense' ? (
+                      <select
+                        value={row.program_id || ''}
+                        onChange={(e) => updateRow(row.id, 'program_id', e.target.value || null)}
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-500"
+                      >
+                        <option value="">- Umum -</option>
+                        {programs
+                          .filter(p => p.category_id === selectedCategoryId)
+                          .map(p => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                          ))
+                        }
+                      </select>
+                    ) : (
+                      <span className="text-gray-400 text-xs italic">-</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {row.transaction_type === 'income' ? (
@@ -399,7 +436,7 @@ export default function TransactionsPage() {
 
               {/* Total Row */}
               <tr className="bg-gray-200 border-t-2 border-gray-900 font-bold">
-                <td colSpan={3} className="px-4 py-4 text-gray-900">TOTAL</td>
+                <td colSpan={4} className="px-4 py-4 text-gray-900">TOTAL</td>
                 <td className="px-4 py-4 text-right text-blue-700">
                   {formatCurrency(totalIncome)}
                 </td>

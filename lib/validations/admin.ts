@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Helper for empty strings to null or undefined
-const emptyStringToNull = (val: unknown) => 
+const emptyStringToNull = (val: unknown) =>
   val === "" ? null : val;
 
 export const organizationProfileSchema = z.object({
@@ -104,7 +104,8 @@ export const homepageSlideSchema = z.object({
 
 export const financialTransactionSchema = z.object({
   year_id: z.string().uuid(),
-  category_id: z.string().uuid().nullable().optional(), // Nullable for general income/expense?
+  category_id: z.string().uuid().nullable().optional(),
+  program_id: z.string().uuid().nullable().optional(), // Linked to specific program
   transaction_type: z.enum(['income', 'expense']),
   description: z.string().min(1, "Deskripsi harus diisi"),
   amount: z.preprocess((val) => Number(val), z.number().nonnegative("Jumlah tidak boleh negatif")),

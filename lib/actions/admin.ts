@@ -715,6 +715,7 @@ export async function reorderHomepageSlides(
 export async function createFinancialTransaction(data: {
   year_id: string;
   category_id: string;
+  program_id?: string | null;
   transaction_type: 'income' | 'expense';
   description: string;
   amount: number;
@@ -788,6 +789,7 @@ export async function deleteFinancialTransaction(id: string) {
 export async function bulkUpsertFinancialTransactions(items: {
   year_id: string;
   category_id: string;
+  program_id?: string | null;
   transaction_type: 'income' | 'expense';
   description: string;
   amount: number;
