@@ -41,9 +41,13 @@ export default function ProgramCategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    percentage: number | string;
+    color_code: string;
+  }>({
     name: '',
-    percentage: 0,
+    percentage: '',
     color_code: DEFAULT_COLORS[0],
   });
   const [submitting, setSubmitting] = useState(false);
@@ -63,7 +67,7 @@ export default function ProgramCategoriesPage() {
 
   const totalPercentage = categories.reduce((sum, cat) =>
     cat.id !== editingId ? sum + cat.percentage : sum, 0
-  ) + (editingId ? formData.percentage : 0);
+  ) + (editingId ? (Number(formData.percentage) || 0) : 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,14 +79,16 @@ export default function ProgramCategoriesPage() {
       return;
     }
 
-    if (formData.percentage < 0 || formData.percentage > 100) {
+    const parsedPercentage = Number(formData.percentage) || 0;
+
+    if (parsedPercentage < 0 || parsedPercentage > 100) {
       error('Persentase harus antara 0-100');
       return;
     }
 
     const newTotal = editingId
       ? totalPercentage
-      : totalPercentage + formData.percentage;
+      : totalPercentage + parsedPercentage;
 
     if (newTotal > 100) {
       error(`Total persentase akan melebihi 100% (${newTotal}%). Sesuaikan persentase.`);
@@ -91,11 +97,16 @@ export default function ProgramCategoriesPage() {
 
     setSubmitting(true);
 
+    const submitData = {
+      ...formData,
+      percentage: parsedPercentage,
+    };
+
     let result;
     if (editingId) {
-      result = await updateProgramCategory(editingId, formData);
+      result = await updateProgramCategory(editingId, submitData);
     } else {
-      result = await createProgramCategory(formData);
+      result = await createProgramCategory(submitData);
     }
 
     if (result.success) {
@@ -144,7 +155,7 @@ export default function ProgramCategoriesPage() {
   const resetForm = () => {
     setFormData({
       name: '',
-      percentage: 0,
+      percentage: '',
       color_code: DEFAULT_COLORS[0],
     });
     setEditingId(null);
@@ -256,7 +267,7 @@ export default function ProgramCategoriesPage() {
                 <input
                   type="number"
                   value={formData.percentage}
-                  onChange={(e) => setFormData({ ...formData, percentage: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => setFormData({ ...formData, percentage: e.target.value === '' ? '' : parseInt(e.target.value) || 0 })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   min="0"
                   max="100"
