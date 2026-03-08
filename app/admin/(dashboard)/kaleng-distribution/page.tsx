@@ -94,11 +94,23 @@ export default function KalengDistributionPage() {
       total_not_collected: 0,
     };
 
+    let new_not_collected = existing.total_not_collected;
+    if (field === 'total_distributed') {
+      const dist = typeof value === 'number' ? value : parseInt(value as string) || 0;
+      const coll = typeof existing.total_collected === 'number' ? existing.total_collected : parseInt(existing.total_collected as string) || 0;
+      new_not_collected = Math.max(0, dist - coll);
+    } else if (field === 'total_collected') {
+      const dist = typeof existing.total_distributed === 'number' ? existing.total_distributed : parseInt(existing.total_distributed as string) || 0;
+      const coll = typeof value === 'number' ? value : parseInt(value as string) || 0;
+      new_not_collected = Math.max(0, dist - coll);
+    }
+
     setKalengData({
       ...kalengData,
       [key]: {
         ...existing,
         [field]: value,
+        ...(field === 'total_distributed' || field === 'total_collected' ? { total_not_collected: new_not_collected } : {}),
       },
     });
   };
