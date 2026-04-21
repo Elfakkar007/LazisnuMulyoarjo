@@ -9,8 +9,10 @@ interface AdminTopbarProps {
 
 export default function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -61,18 +63,18 @@ export default function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
         <div className="flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-lg border border-gray-200">
           {/* Time Display */}
           <div className="flex items-center gap-2">
-            <div className="hidden sm:flex flex-col">
+            <div className="hidden sm:flex flex-col min-w-[120px]">
               <span className="text-xs text-gray-500 leading-none mb-0.5">
-                {formatDate(currentTime)}
+                {mounted ? formatDate(currentTime) : '\u00A0'}
               </span>
               <span className="text-lg font-bold text-gray-900 leading-none font-mono">
-                {formatTime(currentTime)}
+                {mounted ? formatTime(currentTime) : '--:--:--'}
               </span>
             </div>
             {/* Mobile - Time Only */}
-            <div className="flex sm:hidden">
+            <div className="flex sm:hidden min-w-[70px]">
               <span className="text-base font-bold text-gray-900 font-mono">
-                {formatTime(currentTime)}
+                {mounted ? formatTime(currentTime) : '--:--:--'}
               </span>
             </div>
           </div>

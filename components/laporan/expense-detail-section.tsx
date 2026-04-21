@@ -25,35 +25,55 @@ export function ExpenseDetailSection({ year, transactionsData, categoriesData }:
   };
 
   const categoryTransactions = categoriesData.map((category) => {
-    const transactions = transactionsData.filter((t) => t.category_id === category.id && t.transaction_type === "expense");
+    const transactions = transactionsData.filter((t) => t.category_id === category.id);
     transactions.sort((a, b) => new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime());
     let balance = 0;
+    let totalIncome = 0;
+    let totalExpense = 0;
     const transactionsWithBalance = transactions.map((t) => {
-      balance += t.amount;
+      if (t.transaction_type === "income") {
+        balance += t.amount;
+        totalIncome += t.amount;
+      } else {
+        balance -= t.amount;
+        totalExpense += t.amount;
+      }
       return { ...t, runningBalance: balance };
     });
-    return { category, transactions: transactionsWithBalance, total: balance };
+    return { category, transactions: transactionsWithBalance, finalBalance: balance, totalIncome, totalExpense };
   });
 
-  const grandTotal = categoryTransactions.reduce((sum, ct) => sum + ct.total, 0);
+  const grandTotal = categoryTransactions.reduce((sum, ct) => sum + ct.finalBalance, 0);
+  const grandTotalIncome = categoryTransactions.reduce((sum, ct) => sum + ct.totalIncome, 0);
+  const grandTotalExpense = categoryTransactions.reduce((sum, ct) => sum + ct.totalExpense, 0);
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="bg-white rounded-xl shadow-md p-8">
       <div className="flex items-center gap-3 mb-6">
         <div className="bg-emerald-600 rounded-lg p-2"><FileText className="w-6 h-6 text-white" /></div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">E. Rincian Pengeluaran per Program</h2>
-          <p className="text-sm text-gray-600">Detail transaksi dengan format Debet, Kredit, Saldo</p>
+          <h2 className="text-2xl font-bold text-gray-900">E. Rincian Transaksi per Program</h2>
+          <p className="text-sm text-gray-600">Rincian seluruh transaksi pemasukan, pengeluaran, dan mutasi saldo</p>
         </div>
       </div>
 
-      <div className="mb-6 bg-gradient-to-br from-emerald-600 to-teal-600 text-white rounded-xl p-6">
-        <p className="text-sm font-semibold uppercase tracking-wide mb-2">Total Pengeluaran Tahun {year}</p>
-        <p className="text-4xl font-extrabold">{formatCurrency(grandTotal)}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-blue-600 text-white rounded-xl p-6 shadow-md">
+          <p className="text-sm font-semibold uppercase tracking-wide mb-1">Total Pemasukan Tahun {year}</p>
+          <p className="text-3xl font-extrabold">{formatCurrency(grandTotalIncome)}</p>
+        </div>
+        <div className="bg-red-600 text-white rounded-xl p-6 shadow-md">
+          <p className="text-sm font-semibold uppercase tracking-wide mb-1">Total Pengeluaran Tahun {year}</p>
+          <p className="text-3xl font-extrabold">{formatCurrency(grandTotalExpense)}</p>
+        </div>
+        <div className="bg-gradient-to-br from-emerald-600 to-teal-600 text-white rounded-xl p-6 shadow-md">
+          <p className="text-sm font-semibold uppercase tracking-wide mb-1">Total Saldo Tahun {year}</p>
+          <p className="text-3xl font-extrabold">{formatCurrency(grandTotal)}</p>
+        </div>
       </div>
 
       <div className="space-y-4">
-        {categoryTransactions.map(({ category, transactions, total }) => (
+        {categoryTransactions.map(({ category, transactions, finalBalance, totalIncome, totalExpense }) => (
           <div key={category.id} className="border-2 rounded-lg overflow-hidden" style={{ borderColor: category.color_code || "#6b7280" }}>
             <button onClick={() => toggleCategory(category.id)} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors" style={{ backgroundColor: expandedCategories.has(category.id) ? `${category.color_code}10` : "white" }}>
               <div className="flex items-center gap-3">
@@ -65,8 +85,8 @@ export function ExpenseDetailSection({ year, transactionsData, categoriesData }:
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <p className="text-xs text-gray-600 mb-1">Total</p>
-                  <p className="text-xl font-bold text-gray-900">{formatCurrency(total)}</p>
+                  <p className="text-xs text-gray-600 mb-1">Saldo</p>
+                  <p className="text-xl font-bold text-gray-900">{formatCurrency(finalBalance)}</p>
                 </div>
                 {expandedCategories.has(category.id) ? (<ChevronUp className="w-6 h-6 text-gray-600" />) : (<ChevronDown className="w-6 h-6 text-gray-600" />)}
               </div>
@@ -83,8 +103,8 @@ export function ExpenseDetailSection({ year, transactionsData, categoriesData }:
                         <tr className="bg-gray-100 border-b border-gray-300">
                           <th className="px-4 py-3 text-left font-bold text-gray-700">Tanggal</th>
                           <th className="px-4 py-3 text-left font-bold text-gray-700">Keterangan</th>
-                          <th className="px-4 py-3 text-right font-bold text-gray-700">Debet</th>
-                          <th className="px-4 py-3 text-right font-bold text-gray-700">Kredit</th>
+                          <th className="px-4 py-3 text-right font-bold text-gray-700">Debet (Pemasukan)</th>
+                          <th className="px-4 py-3 text-right font-bold text-gray-700">Kredit (Pengeluaran)</th>
                           <th className="px-4 py-3 text-right font-bold text-gray-700 bg-gray-200">Saldo</th>
                         </tr>
                       </thead>
@@ -93,16 +113,20 @@ export function ExpenseDetailSection({ year, transactionsData, categoriesData }:
                           <tr key={transaction.id} className={`border-b border-gray-200 ${index % 2 === 0 ? "bg-white" : "bg-gray-50"}`}>
                             <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{formatDate(transaction.transaction_date)}</td>
                             <td className="px-4 py-3 text-gray-900">{transaction.description}</td>
-                            <td className="px-4 py-3 text-right text-gray-400">-</td>
-                            <td className="px-4 py-3 text-right font-semibold text-red-600">{formatCurrency(transaction.amount)}</td>
+                            <td className="px-4 py-3 text-right font-semibold text-blue-600">
+                              {transaction.transaction_type === 'income' ? formatCurrency(transaction.amount) : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-right font-semibold text-red-600">
+                              {transaction.transaction_type === 'expense' ? formatCurrency(transaction.amount) : '-'}
+                            </td>
                             <td className="px-4 py-3 text-right font-bold text-gray-900 bg-gray-100">{formatCurrency(transaction.runningBalance)}</td>
                           </tr>
                         ))}
                         <tr className="bg-gray-200 border-t-2 border-gray-400 font-bold">
                           <td colSpan={2} className="px-4 py-4 text-gray-900">TOTAL {category.name.toUpperCase()}</td>
-                          <td className="px-4 py-4 text-right text-gray-400">-</td>
-                          <td className="px-4 py-4 text-right text-red-700">{formatCurrency(total)}</td>
-                          <td className="px-4 py-4 text-right text-gray-900 bg-gray-300">{formatCurrency(total)}</td>
+                          <td className="px-4 py-4 text-right text-blue-700">{formatCurrency(totalIncome)}</td>
+                          <td className="px-4 py-4 text-right text-red-700">{formatCurrency(totalExpense)}</td>
+                          <td className="px-4 py-4 text-right text-gray-900 bg-gray-300">{formatCurrency(finalBalance)}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -115,12 +139,12 @@ export function ExpenseDetailSection({ year, transactionsData, categoriesData }:
       </div>
 
       <div className="mt-8 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-        <h4 className="text-sm font-bold text-blue-900 mb-2">Catatan Format Pembukuan:</h4>
+        <h4 className="text-sm font-bold text-blue-900 mb-2">Catatan:</h4>
         <ul className="text-xs text-blue-800 space-y-1">
-          <li>• <strong>Debet</strong>: Pemasukan dana (tidak ditampilkan di tabel pengeluaran ini)</li>
-          <li>• <strong>Kredit</strong>: Pengeluaran untuk program/operasional</li>
-          <li>• <strong>Saldo</strong>: Akumulasi pengeluaran dalam kategori</li>
-          <li>• Klik header kategori untuk expand/collapse detail transaksi</li>
+          <li>• <strong>Debet (Pemasukan)</strong>: Dana yang masuk atau dialokasikan untuk program ini, termasuk alokasi saldo awal jika ada</li>
+          <li>• <strong>Kredit (Pengeluaran)</strong>: Besaran dana yang dikeluarkan untuk pelaksanaan program atau operasional</li>
+          <li>• <strong>Saldo</strong>: Akumulasi berjalan (Pemasukan - Pengeluaran) dalam kategori tersebut</li>
+          <li>• Klik header kategori untuk melihat rincian setiap transaksi (expand/collapse)</li>
         </ul>
       </div>
     </motion.div>

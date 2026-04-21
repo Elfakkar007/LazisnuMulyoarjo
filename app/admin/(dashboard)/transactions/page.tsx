@@ -191,7 +191,7 @@ export default function TransactionsPage() {
         program_id: row.program_id,
       }));
 
-      const result = await bulkUpsertFinancialTransactions(items);
+      const result = await bulkUpsertFinancialTransactions(selectedYearId, selectedCategoryId, items);
 
       if (result.success) {
         success('Data transaksi berhasil disimpan!');

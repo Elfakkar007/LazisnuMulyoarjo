@@ -786,42 +786,60 @@ export async function deleteFinancialTransaction(id: string) {
   return { success: true };
 }
 
-export async function bulkUpsertFinancialTransactions(items: {
-  year_id: string;
-  category_id: string;
-  program_id?: string | null;
-  transaction_type: 'income' | 'expense';
-  description: string;
-  amount: number;
-  transaction_date: string;
-}[]) {
+export async function bulkUpsertFinancialTransactions(
+  year_id: string,
+  category_id: string,
+  items: {
+    year_id: string;
+    category_id: string;
+    program_id?: string | null;
+    transaction_type: 'income' | 'expense';
+    description: string;
+    amount: number;
+    transaction_date: string;
+  }[]
+) {
 
   const validItems = [];
-  for (const item of items) {
-    const result = financialTransactionSchema.safeParse(item);
-    if (result.success) validItems.push(result.data);
+  const formattingErrors: string[] = [];
+
+  for (let i = 0; i < items.length; i++) {
+    // Pastikan string kosong pada program_id dan description ditangani
+    const rawItem = { ...items[i] };
+    if (rawItem.program_id === "") rawItem.program_id = null;
+    if (rawItem.description === "") rawItem.description = rawItem.transaction_type === 'expense' ? 'Pengeluaran' : 'Pemasukan';
+
+    const result = financialTransactionSchema.safeParse(rawItem);
+    if (result.success) {
+      validItems.push(result.data);
+    } else {
+      formattingErrors.push(`Baris ${i + 1} (${rawItem.transaction_type}): ${Object.values(result.error.flatten().fieldErrors).flat().join(', ')}`);
+    }
+  }
+
+  if (formattingErrors.length > 0) {
+    return { success: false, message: `Validasi gagal: ${formattingErrors.join(' | ')}` };
   }
 
   const supabase = await createClient();
 
   // Delete existing transactions for this year/category first
-  if (items.length > 0) {
-    const { year_id, category_id } = items[0];
-    await supabase
-      .from('financial_transactions')
-      .delete()
-      .eq('year_id', year_id)
-      .eq('category_id', category_id);
-  }
+  await supabase
+    .from('financial_transactions')
+    .delete()
+    .eq('year_id', year_id)
+    .eq('category_id', category_id);
 
   // Insert new transactions
-  const { error } = await supabase
-    .from('financial_transactions')
-    .insert(validItems as any);
+  if (validItems.length > 0) {
+    const { error } = await supabase
+      .from('financial_transactions')
+      .insert(validItems as any);
 
-  if (error) {
-    console.error('Error bulk upserting transactions:', error);
-    return { success: false, message: error.message };
+    if (error) {
+      console.error('Error bulk upserting transactions:', error);
+      return { success: false, message: error.message };
+    }
   }
 
   revalidatePath('/admin/transactions');
