@@ -130,6 +130,30 @@ export function FinancialReportContent({
     console.log('=== END DEBUG ===');
   };
 
+  // ============================================
+  // COMPUTE DYNAMIC DATA FROM TRANSACTIONS
+  // ============================================
+  const computedTotalIncome = transactionsData
+    .filter(t => t.transaction_type === 'income')
+    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+    
+  const computedTotalExpense = transactionsData
+    .filter(t => t.transaction_type === 'expense')
+    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+
+  const computedProgramsData = programsData.map(prog => ({
+    ...prog,
+    realization: transactionsData
+      .filter(t => t.program_id === prog.id && t.transaction_type === 'expense')
+      .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
+  }));
+
+  const computedYear = selectedYear ? {
+    ...selectedYear,
+    total_income: computedTotalIncome,
+    total_expense: computedTotalExpense
+  } : null;
+
   const handleDownloadPDF = async () => {
     if (!selectedYear || downloading) return;
 
@@ -152,12 +176,12 @@ export function FinancialReportContent({
       // Prepare data
       const reportData = {
         year: selectedYear.year,
-        totalIncome: selectedYear.total_income || 0,
-        totalExpense: selectedYear.total_expense || 0,
-        balance: (selectedYear.total_income || 0) - (selectedYear.total_expense || 0),
+        totalIncome: computedTotalIncome,
+        totalExpense: computedTotalExpense,
+        balance: computedTotalIncome - computedTotalExpense,
         kalengData: kalengData || [],
         incomeData: incomeData || [],
-        programsData: programsData || [],
+        programsData: computedProgramsData || [],
         categoriesData: categoriesData || [],
         transactionsData: transactionsData || [],
       };
@@ -300,10 +324,11 @@ export function FinancialReportContent({
           <>
             {/* A. Year Summary */}
             <YearSummarySection
-              year={selectedYear}
+              year={computedYear!}
               incomeData={incomeData}
-              programsData={programsData}
+              programsData={computedProgramsData}
               categoriesData={categoriesData}
+              transactionsData={transactionsData}
             />
 
             {/* B. Kaleng Distribution */}
@@ -321,7 +346,7 @@ export function FinancialReportContent({
             {/* D. Programs & Realization */}
             <ProgramsSection
               year={selectedYear.year}
-              programsData={programsData}
+              programsData={computedProgramsData}
               categoriesData={categoriesData}
             />
 

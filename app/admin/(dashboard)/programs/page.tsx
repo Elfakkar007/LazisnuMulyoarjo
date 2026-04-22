@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Edit, Trash2, Upload, Download, Check, X, Filter } from 'lucide-react';
-import { getFinancialYears, getPrograms, getProgramCategories } from '@/lib/api/client-admin';
+import { getFinancialYears, getPrograms, getProgramCategories, getFinancialTransactions } from '@/lib/api/client-admin';
 import { createProgram, updateProgram, deleteProgram, bulkCreatePrograms } from '@/lib/actions/admin';
 import { formatCurrency, calculateProgramProgress } from '@/lib/utils/helpers';
 import { useToast } from '@/components/ui/toast-provider';
@@ -95,8 +95,20 @@ export default function ProgramsPage() {
   };
 
   const loadPrograms = async () => {
-    const data = await getPrograms(selectedYearId);
-    setPrograms(data);
+    const [data, transactionsData] = await Promise.all([
+      getPrograms(selectedYearId),
+      getFinancialTransactions(selectedYearId)
+    ]);
+    
+    // Dynamically calculate realization from transactions
+    const mappedData = data.map((prog: any) => ({
+      ...prog,
+      realization: transactionsData
+        .filter((t: any) => t.program_id === prog.id && t.transaction_type === 'expense')
+        .reduce((sum: number, t: any) => sum + (Number(t.amount) || 0), 0)
+    }));
+
+    setPrograms(mappedData);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -123,12 +135,13 @@ export default function ProgramsPage() {
 
     let result;
     if (editingId) {
-      result = await updateProgram(editingId, formData);
+      result = await updateProgram(editingId, { ...formData, realization: undefined } as any);
     } else {
       result = await createProgram({
         ...formData,
         year_id: selectedYearId,
-      });
+        realization: undefined
+      } as any);
     }
 
     if (result.success) {
@@ -447,15 +460,14 @@ export default function ProgramsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Realisasi</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Realisasi (Auto)</label>
                 <input
-                  type="number"
-                  value={formData.realization || ''}
-                  onChange={(e) => setFormData({ ...formData, realization: e.target.value ? parseFloat(e.target.value) : 0 })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                  min="0"
-                  step="1000"
+                  type="text"
+                  value={formatCurrency(formData.realization || 0)}
+                  disabled
+                  className="w-full px-4 py-2 border border-gray-300 bg-gray-100 rounded-lg text-gray-500 cursor-not-allowed"
                 />
+                <p className="text-[10px] text-gray-500 mt-1">Dihitung dari menu Transaksi (Kredit)</p>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>

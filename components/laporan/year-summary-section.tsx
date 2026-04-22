@@ -14,6 +14,7 @@ interface YearSummarySectionProps {
   incomeData: any[];
   programsData: any[];
   categoriesData: any[];
+  transactionsData: any[];
 }
 
 export function YearSummarySection({
@@ -21,6 +22,7 @@ export function YearSummarySection({
   incomeData,
   programsData,
   categoriesData,
+  transactionsData,
 }: YearSummarySectionProps) {
   const balance = year.total_income - year.total_expense;
   const expensePercentage = year.total_income > 0 
@@ -33,11 +35,12 @@ export function YearSummarySection({
   ];
 
   const categoryBreakdown = categoriesData.map((cat) => {
-    const categoryPrograms = programsData.filter((p) => p.category_id === cat.id);
-    const totalRealization = categoryPrograms.reduce((sum, p) => sum + (p.realization || 0), 0);
+    const categoryExpense = transactionsData
+      .filter((t) => t.category_id === cat.id && t.transaction_type === 'expense')
+      .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
     return {
       name: cat.name,
-      value: totalRealization,
+      value: categoryExpense,
       color: cat.color_code || "#6b7280",
       percentage: cat.percentage,
     };

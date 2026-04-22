@@ -56,17 +56,21 @@ export async function getPrograms(yearId: string) {
   return data;
 }
 
-export async function getFinancialTransactions(yearId: string, categoryId: string) {
+export async function getFinancialTransactions(yearId: string, categoryId?: string) {
   const supabase = createClient();
 
-  if (!yearId || !categoryId) return [];
+  if (!yearId) return [];
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('financial_transactions')
     .select('*')
-    .eq('year_id', yearId)
-    .eq('category_id', categoryId)
-    .order('transaction_date', { ascending: true });
+    .eq('year_id', yearId);
+
+  if (categoryId) {
+    query = query.eq('category_id', categoryId);
+  }
+
+  const { data, error } = await query.order('transaction_date', { ascending: true });
 
   if (error) {
     console.error('Error fetching transactions:', error);

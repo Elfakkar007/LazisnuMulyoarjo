@@ -842,6 +842,26 @@ export async function bulkUpsertFinancialTransactions(
     }
   }
 
+  // Recalculate totals for the year and update financial_years
+  const { data: allYearTransactions } = await supabase
+    .from('financial_transactions')
+    .select('transaction_type, amount')
+    .eq('year_id', year_id);
+
+  if (allYearTransactions) {
+    const totalIncome = allYearTransactions
+      .filter(t => t.transaction_type === 'income')
+      .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+    const totalExpense = allYearTransactions
+      .filter(t => t.transaction_type === 'expense')
+      .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+    await supabase
+      .from('financial_years')
+      .update({ total_income: totalIncome, total_expense: totalExpense })
+      .eq('id', year_id);
+  }
+
   revalidatePath('/admin/transactions');
   revalidatePath('/laporan');
   return { success: true };

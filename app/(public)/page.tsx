@@ -29,6 +29,8 @@ export default async function Home() {
     getRecentActivities(5),
   ]);
 
+  const totalYearlyIncome = monthlyTrendData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+
   return (
     <>
       {/* Hero Section with Carousel */}
@@ -39,6 +41,7 @@ export default async function Home() {
         totalKaleng={totalKaleng}
         currentMonthIncome={currentMonthIncome}
         activeYear={activeYear}
+        totalYearlyIncome={totalYearlyIncome}
       />
 
       {/* Monthly Trend Chart */}

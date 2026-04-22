@@ -14,9 +14,10 @@ interface StatsCardsProps {
     total_income: number;
     total_expense: number;
   } | null;
+  totalYearlyIncome?: number;
 }
 
-export function StatsCards({ totalKaleng, currentMonthIncome, activeYear }: StatsCardsProps) {
+export function StatsCards({ totalKaleng, currentMonthIncome, activeYear, totalYearlyIncome }: StatsCardsProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -57,7 +58,7 @@ export function StatsCards({ totalKaleng, currentMonthIncome, activeYear }: Stat
     {
       id: 3,
       label: "Total Tahun Ini",
-      value: formatCurrency(activeYear?.total_income || 0),
+      value: formatCurrency(totalYearlyIncome !== undefined ? totalYearlyIncome : (activeYear?.total_income || 0)),
       subtext: `Tahun ${activeYear?.year || new Date().getFullYear()}`,
       icon: TrendingUp,
       color: "purple",
