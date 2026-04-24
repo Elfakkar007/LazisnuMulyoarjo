@@ -35,9 +35,19 @@ export function KalengDistributionSection({ year, kalengData }: KalengDistributi
     };
   });
 
+  const isAllMonths = selectedMonth === null;
+  // Count how many months actually have distribution data
+  const activeMonthsCount = MONTHS.filter(month => kalengData.some(d => d.month === month && d.total_distributed > 0)).length || 1;
+
   const dusunTotals = DUSUN.map((dusun) => {
     const dusunData = filteredData.filter((d) => d.dusun === dusun);
-    const totalDistributed = dusunData.reduce((sum, d) => sum + d.total_distributed, 0);
+    let totalDistributed = dusunData.reduce((sum, d) => sum + d.total_distributed, 0);
+    
+    // If "Semua Bulan" is selected, we show the average to represent physical inventory
+    if (isAllMonths) {
+      totalDistributed = Math.round(totalDistributed / activeMonthsCount);
+    }
+    
     return { name: dusun, value: totalDistributed, color: getDusunColor(dusun) };
   });
 
@@ -53,11 +63,19 @@ export function KalengDistributionSection({ year, kalengData }: KalengDistributi
     return null;
   };
 
-  const grandTotal = {
+  let grandTotal = {
     distributed: filteredData.reduce((sum, d) => sum + d.total_distributed, 0),
     collected: filteredData.reduce((sum, d) => sum + d.total_collected, 0),
     notCollected: filteredData.reduce((sum, d) => sum + d.total_not_collected, 0),
   };
+
+  if (isAllMonths) {
+    grandTotal = {
+      distributed: Math.round(grandTotal.distributed / activeMonthsCount),
+      collected: Math.round(grandTotal.collected / activeMonthsCount),
+      notCollected: Math.round(grandTotal.notCollected / activeMonthsCount),
+    };
+  }
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white rounded-xl shadow-md p-8">
@@ -90,7 +108,7 @@ export function KalengDistributionSection({ year, kalengData }: KalengDistributi
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Distribusi per Dusun{selectedMonth && ` - ${getMonthName(selectedMonth)}`}</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Distribusi per Dusun{selectedMonth ? ` - ${getMonthName(selectedMonth)}` : ' (Rata-rata)'}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie data={dusunTotals} cx="50%" cy="50%" outerRadius={100} dataKey="value" label={({ name, value }) => `${name}: ${formatNumber(value)}`}>
@@ -104,7 +122,7 @@ export function KalengDistributionSection({ year, kalengData }: KalengDistributi
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Ringkasan Total</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Ringkasan Total {isAllMonths && <span className="text-sm font-medium text-gray-500">(Rata-rata Bulanan)</span>}</h3>
           <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg p-4 border border-emerald-200">
             <p className="text-sm text-gray-600 mb-1">Total Terdistribusi</p>
             <p className="text-3xl font-extrabold text-emerald-700">{formatNumber(grandTotal.distributed)} <span className="text-lg">kaleng</span></p>

@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Edit, Trash2, Check, X, TrendingUp, Calendar } from 'lucide-react';
-import { getFinancialYears } from '@/lib/api/client-admin';
+import { getFinancialYears, getFinancialTransactions } from '@/lib/api/client-admin';
 import {
   createFinancialYear,
   updateFinancialYear,
@@ -44,7 +44,35 @@ export default function FinancialYearsPage() {
   const loadYears = async () => {
     setLoading(true);
     const data = await getFinancialYears();
-    setYears(data);
+    
+    // For each year, fetch transactions and compute real totals
+    const enrichedYears = await Promise.all(
+      data.map(async (year: FinancialYear) => {
+        const transactions = await getFinancialTransactions(year.id);
+        const computedIncome = transactions
+          .filter((t: any) => t.transaction_type === 'income')
+          .reduce((sum: number, t: any) => sum + (Number(t.amount) || 0), 0);
+        const computedExpense = transactions
+          .filter((t: any) => t.transaction_type === 'expense')
+          .reduce((sum: number, t: any) => sum + (Number(t.amount) || 0), 0);
+
+        // Sync DB if stored values are stale
+        if (year.total_income !== computedIncome || year.total_expense !== computedExpense) {
+          await updateFinancialYear(year.id, {
+            total_income: computedIncome,
+            total_expense: computedExpense,
+          });
+        }
+
+        return {
+          ...year,
+          total_income: computedIncome,
+          total_expense: computedExpense,
+        };
+      })
+    );
+    
+    setYears(enrichedYears);
     setLoading(false);
   };
 

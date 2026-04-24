@@ -76,7 +76,7 @@ export async function getTotalKalengDistributed() {
 
   const { data, error } = await supabase
     .from('kaleng_distribution')
-    .select('total_distributed')
+    .select('month, total_distributed')
     .eq('year_id', activeYear.id);
 
   if (error) {
@@ -84,8 +84,20 @@ export async function getTotalKalengDistributed() {
     return 0;
   }
 
-  const total = data.reduce((sum, item) => sum + item.total_distributed, 0);
-  return total;
+  // Kelompokkan total distribusi per bulan
+  const monthlyTotals = new Map<number, number>();
+  data.forEach(item => {
+    const current = monthlyTotals.get(item.month) || 0;
+    monthlyTotals.set(item.month, current + (item.total_distributed || 0));
+  });
+
+  // Cari bulan dengan distribusi fisik kaleng terbanyak (karena kaleng didaur ulang tiap bulan)
+  let maxKaleng = 0;
+  monthlyTotals.forEach(total => {
+    if (total > maxKaleng) maxKaleng = total;
+  });
+
+  return maxKaleng;
 }
 
 export async function getMonthlyTrendData(yearId?: string) {
