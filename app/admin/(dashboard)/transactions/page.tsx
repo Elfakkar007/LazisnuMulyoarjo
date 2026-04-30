@@ -5,14 +5,16 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Plus, Save, Trash2, GripVertical, Download } from 'lucide-react';
+import { Plus, Save, Trash2, Download } from 'lucide-react';
 import { getFinancialYears, getProgramCategories, getFinancialTransactions, getPrograms } from '@/lib/api/client-admin';
 import { bulkUpsertFinancialTransactions } from '@/lib/actions/admin';
 import { formatCurrency, formatDate } from '@/lib/utils/helpers';
 import { useToast } from '@/components/ui/toast-provider';
 import { useConfirm } from '@/components/ui/confirmation-modal';
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 
 interface FinancialYear {
   id: string;
@@ -44,6 +46,23 @@ interface Program {
 }
 
 export default function TransactionsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Memuat data...</p>
+        </div>
+      </div>
+    }>
+      <TransactionsPageContent />
+    </Suspense>
+  );
+}
+
+function TransactionsPageContent() {
+  const searchParams = useSearchParams();
+  const categoryFromUrl = searchParams.get('category');
   const [years, setYears] = useState<FinancialYear[]>([]);
   const [categories, setCategories] = useState<ProgramCategory[]>([]);
   const [selectedYearId, setSelectedYearId] = useState<string>('');
@@ -52,8 +71,12 @@ export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const { toast, success, error } = useToast();
   const { confirm } = useConfirm();
+
+  // UX-2: Warn user before leaving page with unsaved changes
+  useUnsavedChanges(isDirty);
 
   useEffect(() => {
     loadInitialData();
@@ -80,7 +103,10 @@ export default function TransactionsPage() {
       setSelectedYearId(activeYear?.id || yearsData[0].id);
     }
 
-    if (categoriesData.length > 0) {
+    // UX-1: Auto-select category from URL query param (cross-navigation)
+    if (categoryFromUrl && categoriesData.some(c => c.id === categoryFromUrl)) {
+      setSelectedCategoryId(categoryFromUrl);
+    } else if (categoriesData.length > 0) {
       setSelectedCategoryId(categoriesData[0].id);
     }
 
@@ -128,6 +154,7 @@ export default function TransactionsPage() {
       program_id: null,
     };
     setTransactions([...transactions, newRow]);
+    setIsDirty(true);
   };
 
   const addIncomeRow = () => {
@@ -142,12 +169,14 @@ export default function TransactionsPage() {
       program_id: null,
     };
     setTransactions([newRow, ...transactions]);
+    setIsDirty(true);
   };
 
   const updateRow = (id: string, field: keyof TransactionRow, value: any) => {
     setTransactions(transactions.map(row =>
       row.id === id ? { ...row, [field]: value } : row
     ));
+    setIsDirty(true);
   };
 
   const deleteRow = async (id: string) => {
@@ -160,6 +189,7 @@ export default function TransactionsPage() {
 
     if (!isConfirmed) return;
     setTransactions(transactions.filter(row => row.id !== id));
+    setIsDirty(true);
   };
 
   const recalculateBalances = () => {
@@ -182,6 +212,7 @@ export default function TransactionsPage() {
     try {
       // Prepare data for bulk upsert
       const items = transactions.map(row => ({
+        id: row.id,
         year_id: selectedYearId,
         category_id: selectedCategoryId,
         transaction_type: row.transaction_type,
@@ -195,6 +226,7 @@ export default function TransactionsPage() {
 
       if (result.success) {
         success('Data transaksi berhasil disimpan!');
+        setIsDirty(false);
         await loadTransactions();
       } else {
         error(`Gagal menyimpan: ${(result as any).message}`);
@@ -207,9 +239,7 @@ export default function TransactionsPage() {
     }
   };
 
-  const handleExportPDF = () => {
-    toast('Fitur export PDF akan segera tersedia', 'info');
-  };
+
 
   const calculatedTransactions = recalculateBalances();
   const totalIncome = calculatedTransactions
@@ -243,8 +273,9 @@ export default function TransactionsPage() {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={handleExportPDF}
-            className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+            disabled
+            title="Fitur export PDF akan segera tersedia"
+            className="flex items-center gap-2 bg-gray-300 text-gray-500 px-4 py-2 rounded-lg font-semibold cursor-not-allowed"
           >
             <Download className="w-5 h-5" />
             Export PDF
@@ -293,24 +324,29 @@ export default function TransactionsPage() {
       </div>
 
       {/* Summary */}
+      {/* UI-5: Fixed contrast - dark overlay ensures text is always readable */}
       {selectedCategory && (
         <div
-          className="rounded-xl p-6 text-white"
+          className="rounded-xl p-6 text-white relative overflow-hidden"
           style={{ backgroundColor: selectedCategory.color_code }}
         >
-          <h3 className="text-lg font-semibold mb-3">{selectedCategory.name}</h3>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm opacity-90">Total Pemasukan (Debet)</p>
-              <p className="text-2xl font-bold">{formatCurrency(totalIncome)}</p>
-            </div>
-            <div>
-              <p className="text-sm opacity-90">Total Pengeluaran (Kredit)</p>
-              <p className="text-2xl font-bold">{formatCurrency(totalExpense)}</p>
-            </div>
-            <div>
-              <p className="text-sm opacity-90">Saldo Akhir</p>
-              <p className="text-2xl font-bold">{formatCurrency(finalBalance)}</p>
+          {/* Dark overlay for readability */}
+          <div className="absolute inset-0 bg-black/25" />
+          <div className="relative z-10">
+            <h3 className="text-lg font-semibold mb-3 drop-shadow-sm">{selectedCategory.name}</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <p className="text-sm opacity-90 drop-shadow-sm">Total Pemasukan (Debet)</p>
+                <p className="text-2xl font-bold drop-shadow-sm">{formatCurrency(totalIncome)}</p>
+              </div>
+              <div>
+                <p className="text-sm opacity-90 drop-shadow-sm">Total Pengeluaran (Kredit)</p>
+                <p className="text-2xl font-bold drop-shadow-sm">{formatCurrency(totalExpense)}</p>
+              </div>
+              <div>
+                <p className="text-sm opacity-90 drop-shadow-sm">Saldo Akhir</p>
+                <p className="text-2xl font-bold drop-shadow-sm">{formatCurrency(finalBalance)}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -340,22 +376,20 @@ export default function TransactionsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-900 text-white">
-                <th className="px-2 py-3 w-8"></th>
+
                 <th className="px-4 py-3 text-left font-bold">Tanggal</th>
                 <th className="px-4 py-3 text-left font-bold">Keterangan</th>
                 <th className="px-4 py-3 text-left font-bold w-48">Program (Opsional)</th>
-                <th className="px-4 py-3 text-right font-bold">Debet</th>
-                <th className="px-4 py-3 text-right font-bold">Kredit</th>
-                <th className="px-4 py-3 text-right font-bold bg-gray-800">Saldo</th>
+                <th className="px-4 py-3 text-right font-bold min-w-[160px]">Debet</th>
+                <th className="px-4 py-3 text-right font-bold min-w-[160px]">Kredit</th>
+                <th className="px-4 py-3 text-right font-bold bg-gray-800 min-w-[160px]">Saldo</th>
                 <th className="px-4 py-3 text-center font-bold">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {calculatedTransactions.map((row, index) => (
                 <tr key={row.id} className={`border-b border-gray-200 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                  <td className="px-2 py-3">
-                    <GripVertical className="w-4 h-4 text-gray-400 cursor-move" />
-                  </td>
+
                   <td className="px-4 py-3">
                     <input
                       type="date"
@@ -381,12 +415,15 @@ export default function TransactionsPage() {
                         className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-500"
                       >
                         <option value="">- Umum -</option>
-                        {programs
-                          .filter(p => p.category_id === selectedCategoryId)
-                          .map(p => (
-                            <option key={p.id} value={p.id}>{p.name}</option>
-                          ))
-                        }
+                        {programs.filter(p => p.category_id === selectedCategoryId).length === 0 ? (
+                          <option disabled>— Belum ada program di kategori ini —</option>
+                        ) : (
+                          programs
+                            .filter(p => p.category_id === selectedCategoryId)
+                            .map(p => (
+                              <option key={p.id} value={p.id}>{p.name}</option>
+                            ))
+                        )}
                       </select>
                     ) : (
                       <span className="text-gray-400 text-xs italic">-</span>

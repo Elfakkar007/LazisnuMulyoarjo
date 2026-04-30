@@ -11,6 +11,7 @@ import { Package, Upload, Download, Save, Plus } from 'lucide-react';
 import { getFinancialYears, getKalengDistribution } from '@/lib/api/client-admin';
 import { bulkUpsertKalengDistribution } from '@/lib/actions/admin';
 import { formatNumber, getMonthName, DUSUN_LIST } from '@/lib/utils/helpers';
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 
 interface FinancialYear {
   id: string;
@@ -34,6 +35,10 @@ export default function KalengDistributionPage() {
   const [kalengData, setKalengData] = useState<Record<string, KalengData>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+
+  // UX-2: Warn user before leaving page with unsaved changes
+  useUnsavedChanges(isDirty);
 
   useEffect(() => {
     loadYears();
@@ -113,6 +118,7 @@ export default function KalengDistributionPage() {
         ...(field === 'total_distributed' || field === 'total_collected' ? { total_not_collected: new_not_collected } : {}),
       },
     });
+    setIsDirty(true);
   };
 
   const handleSave = async () => {
@@ -134,6 +140,7 @@ export default function KalengDistributionPage() {
 
     if (result.success) {
       alert('Data berhasil disimpan!');
+      setIsDirty(false);
       await loadKalengData();
     } else {
       alert(`Gagal menyimpan: ${(result as any).message}`);

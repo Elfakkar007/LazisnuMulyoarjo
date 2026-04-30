@@ -12,6 +12,7 @@ import { getFinancialYears, getMonthlyIncome } from '@/lib/api/client-admin';
 import { upsertMonthlyIncome } from '@/lib/actions/admin';
 import { formatCurrency, getMonthName } from '@/lib/utils/helpers';
 import { useToast } from '@/components/ui/toast-provider';
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 
 interface FinancialYear {
   id: string;
@@ -40,6 +41,9 @@ export default function MonthlyIncomePage() {
   const [saving, setSaving] = useState(false);
   const [editingMonth, setEditingMonth] = useState<number | null>(null);
   const { toast, success, error } = useToast();
+
+  // UX-2: Warn user before leaving page with unsaved changes
+  useUnsavedChanges(editingMonth !== null);
 
   useEffect(() => {
     loadYears();

@@ -75,7 +75,6 @@ export const programSchema = z.object({
   target_audience: z.string().nullable().optional(),
   quantity: z.string().nullable().optional(),
   budget: z.preprocess((val) => Number(val), z.number().nonnegative()),
-  realization: z.preprocess((val) => Number(val), z.number().nonnegative().optional()),
   is_completed: z.boolean().default(false),
 });
 
@@ -103,6 +102,7 @@ export const homepageSlideSchema = z.object({
 });
 
 export const financialTransactionSchema = z.object({
+  id: z.string().uuid().optional(),
   year_id: z.string().uuid(),
   category_id: z.string().uuid().nullable().optional(),
   program_id: z.string().uuid().nullable().optional(), // Linked to specific program

@@ -271,7 +271,6 @@ export interface Database {
           target_audience: string | null
           quantity: string | null
           budget: number
-          realization: number
           is_completed: boolean
           created_at: string
         }
@@ -284,7 +283,6 @@ export interface Database {
           target_audience?: string | null
           quantity?: string | null
           budget: number
-          realization?: number
           is_completed?: boolean
           created_at?: string
         }
@@ -297,7 +295,6 @@ export interface Database {
           target_audience?: string | null
           quantity?: string | null
           budget?: number
-          realization?: number
           is_completed?: boolean
           created_at?: string
         }

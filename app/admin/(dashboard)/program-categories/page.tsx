@@ -133,7 +133,7 @@ export default function ProgramCategoriesPage() {
   const handleDelete = async (category: ProgramCategory) => {
     const isConfirmed = await confirm({
       title: 'Hapus Kategori',
-      message: `Apakah Anda yakin ingin menghapus kategori "${category.name}"? Program terkait akan ikut terhapus.`,
+      message: `Apakah Anda yakin ingin menghapus kategori "${category.name}"? Semua program dan transaksi terkait akan ikut terhapus.`,
       confirmText: 'Hapus',
       variant: 'danger'
     });

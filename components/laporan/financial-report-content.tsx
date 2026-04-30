@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Calendar, Download, Bug } from "lucide-react";
+import { Calendar, Download } from "lucide-react";
 import { YearSummarySection } from "./year-summary-section";
 import { KalengDistributionSection } from "./kaleng-distribution-section";
 import { MonthlyIncomeSection } from "./monthly-income-section";
@@ -85,50 +85,7 @@ export function FinancialReportContent({
     }
   };
 
-  // ============================================
-  // 🐛 DEBUG FUNCTION
-  // ============================================
-  const handleDebugData = () => {
-    console.log('=== 🐛 DEBUG DATA CHECK ===');
-    console.log('Selected Year:', selectedYear);
-    console.log('📊 Summary:', {
-      year: selectedYear?.year,
-      totalIncome: selectedYear?.total_income,
-      totalExpense: selectedYear?.total_expense,
-      balance: selectedYear ? selectedYear.total_income - selectedYear.total_expense : 0,
-    });
-    console.log('📏 Data Lengths:', {
-      kaleng: kalengData?.length || 0,
-      income: incomeData?.length || 0,
-      programs: programsData?.length || 0,
-      categories: categoriesData?.length || 0,
-      transactions: transactionsData?.length || 0,
-    });
-    console.log('📦 Sample Data:');
-    console.log('- Kaleng first:', kalengData?.[0]);
-    console.log('- Income first:', incomeData?.[0]);
-    console.log('- Programs first:', programsData?.[0]);
-    console.log('- Categories first:', categoriesData?.[0]);
-    console.log('- Transactions first:', transactionsData?.[0]);
-    
-    // Check for empty data
-    const warnings = [];
-    if (!kalengData || kalengData.length === 0) warnings.push('⚠️ Kaleng data KOSONG');
-    if (!incomeData || incomeData.length === 0) warnings.push('⚠️ Income data KOSONG');
-    if (!programsData || programsData.length === 0) warnings.push('⚠️ Programs data KOSONG');
-    if (!categoriesData || categoriesData.length === 0) warnings.push('⚠️ Categories data KOSONG');
-    if (!transactionsData || transactionsData.length === 0) warnings.push('⚠️ Transactions data KOSONG');
-    
-    if (warnings.length > 0) {
-      console.warn('🚨 WARNINGS:', warnings);
-      alert(`Data Check:\n\nData yang kosong:\n${warnings.join('\n')}\n\nCek console untuk detail.`);
-    } else {
-      console.log('✅ Semua data ada!');
-      alert(`✅ Data Check Success!\n\nKaleng: ${kalengData.length}\nIncome: ${incomeData.length}\nPrograms: ${programsData.length}\nCategories: ${categoriesData.length}\nTransactions: ${transactionsData.length}\n\nSiap untuk PDF!`);
-    }
-    
-    console.log('=== END DEBUG ===');
-  };
+
 
   // ============================================
   // COMPUTE DYNAMIC DATA FROM TRANSACTIONS
@@ -294,15 +251,6 @@ export function FinancialReportContent({
                   </option>
                 ))}
               </select>
-
-              {/* DEBUG BUTTON */}
-              <button
-                onClick={handleDebugData}
-                className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg font-semibold transition-colors"
-                title="Check data"
-              >
-                <Bug className="w-4 h-4" />
-              </button>
 
               <button
                 onClick={handleDownloadPDF}

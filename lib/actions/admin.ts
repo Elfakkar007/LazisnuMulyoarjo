@@ -46,7 +46,7 @@ function formatError(error: any) {
 export async function updateOrganizationProfile(
   data: Tables['organization_profile']['Update']
 ) {
-  const result = organizationProfileSchema.safeParse(data);
+  const result = organizationProfileSchema.partial().safeParse(data);
 
   if (!result.success) {
     return formatError(result.error);
@@ -790,6 +790,7 @@ export async function bulkUpsertFinancialTransactions(
   year_id: string,
   category_id: string,
   items: {
+    id: string;
     year_id: string;
     category_id: string;
     program_id?: string | null;
@@ -822,19 +823,34 @@ export async function bulkUpsertFinancialTransactions(
   }
 
   const supabase = await createClient();
+  const validIds = validItems.map(item => item.id).filter(Boolean) as string[];
 
-  // Delete existing transactions for this year/category first
-  await supabase
+  // 1. Dapatkan daftar ID transaksi yang sudah ada di database untuk kategori & tahun ini
+  const { data: existingRecords } = await supabase
     .from('financial_transactions')
-    .delete()
+    .select('id')
     .eq('year_id', year_id)
     .eq('category_id', category_id);
 
-  // Insert new transactions
+  // 2. Hapus transaksi yang ada di DB tapi TIDAK ada di list validIds (berarti dihapus oleh admin di UI)
+  if (existingRecords) {
+    const idsToDelete = existingRecords
+      .map(row => row.id)
+      .filter(id => !validIds.includes(id));
+      
+    if (idsToDelete.length > 0) {
+      await supabase
+        .from('financial_transactions')
+        .delete()
+        .in('id', idsToDelete);
+    }
+  }
+
+  // 3. Upsert (Update jika ada, Insert jika baru) transaksi yang valid
   if (validItems.length > 0) {
     const { error } = await supabase
       .from('financial_transactions')
-      .insert(validItems as any);
+      .upsert(validItems as any, { onConflict: 'id' });
 
     if (error) {
       console.error('Error bulk upserting transactions:', error);
@@ -842,25 +858,29 @@ export async function bulkUpsertFinancialTransactions(
     }
   }
 
-  // Recalculate totals for the year and update financial_years
+  // Recalculate total_expense from transactions
   const { data: allYearTransactions } = await supabase
     .from('financial_transactions')
     .select('transaction_type, amount')
     .eq('year_id', year_id);
 
-  if (allYearTransactions) {
-    const totalIncome = allYearTransactions
-      .filter(t => t.transaction_type === 'income')
-      .reduce((sum, t) => sum + Number(t.amount || 0), 0);
-    const totalExpense = allYearTransactions
-      .filter(t => t.transaction_type === 'expense')
-      .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  // Recalculate total_income from monthly_income (the authoritative source)
+  const { data: monthlyIncomeData } = await supabase
+    .from('monthly_income')
+    .select('gross_amount')
+    .eq('year_id', year_id);
 
-    await supabase
-      .from('financial_years')
-      .update({ total_income: totalIncome, total_expense: totalExpense })
-      .eq('id', year_id);
-  }
+  const totalIncome = monthlyIncomeData
+    ?.reduce((sum, t) => sum + Number(t.gross_amount || 0), 0) || 0;
+
+  const totalExpense = allYearTransactions
+    ?.filter(t => t.transaction_type === 'expense')
+    .reduce((sum, t) => sum + Number(t.amount || 0), 0) || 0;
+
+  await supabase
+    .from('financial_years')
+    .update({ total_income: totalIncome, total_expense: totalExpense })
+    .eq('id', year_id);
 
   revalidatePath('/admin/transactions');
   revalidatePath('/laporan');

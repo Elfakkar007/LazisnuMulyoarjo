@@ -7,7 +7,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Upload, Download, Check, X, Filter } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, Download, Check, X, Filter, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import { getFinancialYears, getPrograms, getProgramCategories, getFinancialTransactions } from '@/lib/api/client-admin';
 import { createProgram, updateProgram, deleteProgram, bulkCreatePrograms } from '@/lib/actions/admin';
 import { formatCurrency, calculateProgramProgress } from '@/lib/utils/helpers';
@@ -339,7 +340,7 @@ export default function ProgramsPage() {
         {categoryStats.map(cat => (
           <div
             key={cat.id}
-            className="bg-white rounded-xl shadow-md p-4 border-2"
+            className="bg-white rounded-xl shadow-md p-5 border-2"
             style={{ borderColor: cat.color_code }}
           >
             <div className="flex items-center gap-2 mb-3">
@@ -349,7 +350,7 @@ export default function ProgramsPage() {
               />
               <h4 className="font-bold text-gray-900 text-sm">{cat.name}</h4>
             </div>
-            <div className="space-y-2 text-xs">
+            <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Program:</span>
                 <span className="font-semibold">{cat.totalPrograms}</span>
@@ -367,6 +368,15 @@ export default function ProgramsPage() {
                 <span className="font-semibold">{cat.completedCount}/{cat.totalPrograms}</span>
               </div>
             </div>
+            {/* UX-1: Cross-navigation link to Transactions */}
+            <Link
+              href={`/admin/transactions?category=${cat.id}`}
+              className="mt-3 flex items-center justify-center gap-1.5 w-full px-3 py-2 rounded-lg text-xs font-semibold transition-colors text-white hover:opacity-90"
+              style={{ backgroundColor: cat.color_code }}
+            >
+              Kelola Transaksi
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
         ))}
       </div>
@@ -508,7 +518,7 @@ export default function ProgramsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-emerald-600 text-white">
+              <tr className="bg-gray-900 text-white">
                 <th className="px-4 py-3 text-left font-bold">Nama Program</th>
                 <th className="px-4 py-3 text-left font-bold">Kategori</th>
                 <th className="px-4 py-3 text-left font-bold">Target</th>
@@ -553,7 +563,14 @@ export default function ProgramsPage() {
                       {formatCurrency(program.budget)}
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-emerald-600">
-                      {formatCurrency(program.realization)}
+                      <div className="flex items-center justify-end gap-2">
+                        {program.realization > 0 && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700" title="Ada transaksi terkait">
+                            ✓ Linked
+                          </span>
+                        )}
+                        {formatCurrency(program.realization)}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-col items-center gap-1">
@@ -598,6 +615,33 @@ export default function ProgramsPage() {
                   </tr>
                 );
               })}
+
+              {/* Total Row */}
+              {filteredPrograms.length > 0 && (
+                <tr className="bg-gray-200 border-t-2 border-gray-900 font-bold">
+                  <td className="px-4 py-4 text-gray-900" colSpan={3}>TOTAL ({filteredPrograms.length} program)</td>
+                  <td className="px-4 py-4 text-right text-gray-900">
+                    {formatCurrency(filteredPrograms.reduce((sum, p) => sum + p.budget, 0))}
+                  </td>
+                  <td className="px-4 py-4 text-right text-emerald-700">
+                    {formatCurrency(filteredPrograms.reduce((sum, p) => sum + p.realization, 0))}
+                  </td>
+                  <td className="px-4 py-4 text-center">
+                    <span className="text-sm font-bold">
+                      {filteredPrograms.reduce((sum, p) => sum + p.budget, 0) > 0
+                        ? calculateProgramProgress(
+                            filteredPrograms.reduce((sum, p) => sum + p.realization, 0),
+                            filteredPrograms.reduce((sum, p) => sum + p.budget, 0)
+                          )
+                        : 0}%
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 text-center text-sm">
+                    {filteredPrograms.filter(p => p.is_completed).length}/{filteredPrograms.length}
+                  </td>
+                  <td></td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
