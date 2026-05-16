@@ -101,10 +101,10 @@ export function YearSummarySection({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white rounded-xl shadow-md p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Perbandingan Pemasukan & Pengeluaran</h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Perbandingan Pemasukan &amp; Pengeluaran</h3>
+          <ResponsiveContainer width="100%" height={260}>
             <PieChart>
-              <Pie data={chartData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
+              <Pie data={chartData} cx="50%" cy="50%" innerRadius={50} outerRadius={90} paddingAngle={5} dataKey="value">
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}

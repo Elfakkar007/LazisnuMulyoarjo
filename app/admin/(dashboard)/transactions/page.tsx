@@ -266,27 +266,27 @@ function TransactionsPageContent() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Rincian Pengeluaran</h1>
-          <p className="text-gray-600 mt-1">Kelola transaksi dengan format Debet-Kredit-Saldo</p>
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 truncate">Rincian Pengeluaran</h1>
+          <p className="text-gray-600 mt-1 text-sm hidden sm:block">Kelola transaksi dengan format Debet-Kredit-Saldo</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-shrink-0">
           <button
             disabled
             title="Fitur export PDF akan segera tersedia"
-            className="flex items-center gap-2 bg-gray-300 text-gray-500 px-4 py-2 rounded-lg font-semibold cursor-not-allowed"
+            className="flex items-center gap-2 bg-gray-300 text-gray-500 p-2 md:px-4 md:py-2 rounded-lg font-semibold cursor-not-allowed"
           >
             <Download className="w-5 h-5" />
-            Export PDF
+            <span className="hidden md:inline">Export PDF</span>
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white p-2 md:px-4 md:py-2 rounded-lg font-semibold transition-colors"
           >
             <Save className="w-5 h-5" />
-            {saving ? 'Menyimpan...' : 'Simpan'}
+            <span className="hidden md:inline">{saving ? 'Menyimpan...' : 'Simpan'}</span>
           </button>
         </div>
       </div>
@@ -327,25 +327,25 @@ function TransactionsPageContent() {
       {/* UI-5: Fixed contrast - dark overlay ensures text is always readable */}
       {selectedCategory && (
         <div
-          className="rounded-xl p-6 text-white relative overflow-hidden"
+          className="rounded-xl p-5 text-white relative overflow-hidden"
           style={{ backgroundColor: selectedCategory.color_code }}
         >
           {/* Dark overlay for readability */}
           <div className="absolute inset-0 bg-black/25" />
           <div className="relative z-10">
-            <h3 className="text-lg font-semibold mb-3 drop-shadow-sm">{selectedCategory.name}</h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <p className="text-sm opacity-90 drop-shadow-sm">Total Pemasukan (Debet)</p>
-                <p className="text-2xl font-bold drop-shadow-sm">{formatCurrency(totalIncome)}</p>
+            <h3 className="text-base font-semibold mb-3 drop-shadow-sm">{selectedCategory.name}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="bg-black/10 rounded-lg p-3">
+                <p className="text-xs opacity-90 drop-shadow-sm mb-1">Total Pemasukan (Debet)</p>
+                <p className="text-xl font-bold drop-shadow-sm">{formatCurrency(totalIncome)}</p>
               </div>
-              <div>
-                <p className="text-sm opacity-90 drop-shadow-sm">Total Pengeluaran (Kredit)</p>
-                <p className="text-2xl font-bold drop-shadow-sm">{formatCurrency(totalExpense)}</p>
+              <div className="bg-black/10 rounded-lg p-3">
+                <p className="text-xs opacity-90 drop-shadow-sm mb-1">Total Pengeluaran (Kredit)</p>
+                <p className="text-xl font-bold drop-shadow-sm">{formatCurrency(totalExpense)}</p>
               </div>
-              <div>
-                <p className="text-sm opacity-90 drop-shadow-sm">Saldo Akhir</p>
-                <p className="text-2xl font-bold drop-shadow-sm">{formatCurrency(finalBalance)}</p>
+              <div className="bg-black/10 rounded-lg p-3">
+                <p className="text-xs opacity-90 drop-shadow-sm mb-1">Saldo Akhir</p>
+                <p className="text-xl font-bold drop-shadow-sm">{formatCurrency(finalBalance)}</p>
               </div>
             </div>
           </div>
@@ -353,20 +353,20 @@ function TransactionsPageContent() {
       )}
 
       {/* Add Buttons */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           onClick={addIncomeRow}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors text-sm"
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-semibold transition-colors text-sm"
         >
           <Plus className="w-4 h-4" />
-          Tambah Debet (Pemasukan)
+          <span className="hidden xs:inline">Tambah</span> Debet
         </button>
         <button
           onClick={addRow}
-          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors text-sm"
+          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-semibold transition-colors text-sm"
         >
           <Plus className="w-4 h-4" />
-          Tambah Kredit (Pengeluaran)
+          <span className="hidden xs:inline">Tambah</span> Kredit
         </button>
       </div>
 

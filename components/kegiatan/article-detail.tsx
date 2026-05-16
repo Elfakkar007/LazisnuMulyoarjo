@@ -214,26 +214,29 @@ export function ArticleDetail({ article, relatedArticles }: ArticleDetailProps) 
               <div className="flex gap-2">
                 <button
                   onClick={() => handleShare("whatsapp")}
-                  className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
+                  title="Bagikan ke WhatsApp"
+                  className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white p-2 md:px-4 md:py-2 rounded-lg transition-colors"
                 >
-                  <MessageCircle className="w-4 h-4" />
-                  <span className="text-sm font-semibold">WhatsApp</span>
+                  <MessageCircle className="w-5 h-5" />
+                  <span className="hidden md:inline text-sm font-semibold">WhatsApp</span>
                 </button>
 
                 <button
                   onClick={() => handleShare("facebook")}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  title="Bagikan ke Facebook"
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white p-2 md:px-4 md:py-2 rounded-lg transition-colors"
                 >
-                  <Facebook className="w-4 h-4" />
-                  <span className="text-sm font-semibold">Facebook</span>
+                  <Facebook className="w-5 h-5" />
+                  <span className="hidden md:inline text-sm font-semibold">Facebook</span>
                 </button>
 
                 <button
                   onClick={() => handleShare("copy")}
-                  className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  title={copied ? "Tersalin!" : "Salin tautan"}
+                  className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white p-2 md:px-4 md:py-2 rounded-lg transition-colors"
                 >
-                  <Copy className="w-4 h-4" />
-                  <span className="text-sm font-semibold">
+                  <Copy className="w-5 h-5" />
+                  <span className="hidden md:inline text-sm font-semibold">
                     {copied ? "Tersalin!" : "Copy Link"}
                   </span>
                 </button>

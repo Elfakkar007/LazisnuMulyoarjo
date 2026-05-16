@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Package, Upload, Download, Save, Plus } from 'lucide-react';
+import { Package, Upload, Download, Save, Plus, AlertTriangle } from 'lucide-react';
 import { getFinancialYears, getKalengDistribution } from '@/lib/api/client-admin';
 import { bulkUpsertKalengDistribution } from '@/lib/actions/admin';
 import { formatNumber, getMonthName, DUSUN_LIST } from '@/lib/utils/helpers';
@@ -99,15 +99,16 @@ export default function KalengDistributionPage() {
       total_not_collected: 0,
     };
 
-    let new_not_collected = existing.total_not_collected;
-    if (field === 'total_distributed') {
-      const dist = typeof value === 'number' ? value : parseInt(value as string) || 0;
-      const coll = typeof existing.total_collected === 'number' ? existing.total_collected : parseInt(existing.total_collected as string) || 0;
-      new_not_collected = Math.max(0, dist - coll);
-    } else if (field === 'total_collected') {
-      const dist = typeof existing.total_distributed === 'number' ? existing.total_distributed : parseInt(existing.total_distributed as string) || 0;
+    // Distribusi = Terkumpul + Belum (auto-calculated)
+    let new_distributed = existing.total_distributed;
+    if (field === 'total_collected') {
       const coll = typeof value === 'number' ? value : parseInt(value as string) || 0;
-      new_not_collected = Math.max(0, dist - coll);
+      const notColl = typeof existing.total_not_collected === 'number' ? existing.total_not_collected : parseInt(existing.total_not_collected as string) || 0;
+      new_distributed = coll + notColl;
+    } else if (field === 'total_not_collected') {
+      const notColl = typeof value === 'number' ? value : parseInt(value as string) || 0;
+      const coll = typeof existing.total_collected === 'number' ? existing.total_collected : parseInt(existing.total_collected as string) || 0;
+      new_distributed = coll + notColl;
     }
 
     setKalengData({
@@ -115,7 +116,7 @@ export default function KalengDistributionPage() {
       [key]: {
         ...existing,
         [field]: value,
-        ...(field === 'total_distributed' || field === 'total_collected' ? { total_not_collected: new_not_collected } : {}),
+        ...(field === 'total_collected' || field === 'total_not_collected' ? { total_distributed: new_distributed } : {}),
       },
     });
     setIsDirty(true);
@@ -244,6 +245,35 @@ export default function KalengDistributionPage() {
         </div>
       </div>
 
+      {/* Unsaved Changes Banner */}
+      {isDirty && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.25 }}
+          className="flex items-center justify-between gap-4 bg-amber-50 border border-amber-300 rounded-xl px-5 py-3 shadow-sm"
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex-shrink-0 animate-pulse">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-amber-800">Ada perubahan yang belum disimpan</p>
+              <p className="text-xs text-amber-600">Klik &ldquo;Simpan Semua&rdquo; agar data tidak hilang saat meninggalkan halaman.</p>
+            </div>
+          </div>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-shrink-0 flex items-center gap-2 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? 'Menyimpan...' : 'Simpan Sekarang'}
+          </button>
+        </motion.div>
+      )}
+
       {/* Controls */}
       <div className="bg-white rounded-xl shadow-md p-6">
         <div className="flex flex-wrap gap-4 items-end">
@@ -323,9 +353,9 @@ export default function KalengDistributionPage() {
                 <th className="px-4 py-2 sticky left-0 bg-emerald-500 z-10"></th>
                 {DUSUN_LIST.map(dusun => (
                   <React.Fragment key={dusun}>
-                    <th className="px-2 py-2 border-l border-emerald-600">Distribusi</th>
-                    <th className="px-2 py-2">Terkumpul</th>
+                    <th className="px-2 py-2 border-l border-emerald-600">Terkumpul</th>
                     <th className="px-2 py-2">Belum</th>
+                    <th className="px-2 py-2">Distribusi</th>
                   </React.Fragment>
                 ))}
               </tr>
@@ -341,15 +371,6 @@ export default function KalengDistributionPage() {
                       <td className="px-2 py-2 border-l border-gray-200">
                         <input
                           type="number"
-                          value={getValue(month, dusun, 'total_distributed')}
-                          onChange={(e) => setValue(month, dusun, 'total_distributed', e.target.value ? parseInt(e.target.value) : '')}
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                          min="0"
-                        />
-                      </td>
-                      <td className="px-2 py-2">
-                        <input
-                          type="number"
                           value={getValue(month, dusun, 'total_collected')}
                           onChange={(e) => setValue(month, dusun, 'total_collected', e.target.value ? parseInt(e.target.value) : '')}
                           className="w-full px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -362,6 +383,15 @@ export default function KalengDistributionPage() {
                           value={getValue(month, dusun, 'total_not_collected')}
                           onChange={(e) => setValue(month, dusun, 'total_not_collected', e.target.value ? parseInt(e.target.value) : '')}
                           className="w-full px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          min="0"
+                        />
+                      </td>
+                      <td className="px-2 py-2">
+                        <input
+                          type="number"
+                          value={getValue(month, dusun, 'total_distributed')}
+                          readOnly
+                          className="w-full px-2 py-1 border border-gray-200 rounded text-center bg-emerald-50 text-emerald-800 font-semibold cursor-not-allowed"
                           min="0"
                         />
                       </td>

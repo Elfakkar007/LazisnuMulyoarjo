@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "../globals.css"; // Fixed: Changed from "./globals.css" to "../globals.css"
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
+import "../globals.css";
 import { DesktopNav } from "@/components/layout/desktop-nav";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Footer } from "@/components/layout/footer";
@@ -12,16 +13,6 @@ import { validateEnv } from '@/lib/utils/env';
 if (process.env.NODE_ENV !== 'production') {
   validateEnv();
 }
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "LazisNU Mulyoarjo - Transparansi Pengelolaan Koin Amal",
@@ -37,7 +28,7 @@ export default async function PublicLayout({
   const organizationProfile = await getOrganizationProfile();
 
   return (
-    <>
+    <div className={`${GeistSans.variable} ${GeistMono.variable}`}>
       {/* Desktop Navigation */}
       <DesktopNav
         logoSrc={organizationProfile?.logo_url || "/assets/logo.ico"}
@@ -60,6 +51,6 @@ export default async function PublicLayout({
       <WhatsAppFloatingButton
         phoneNumber={organizationProfile?.whatsapp_number || null}
       />
-    </>
+    </div>
   );
 }

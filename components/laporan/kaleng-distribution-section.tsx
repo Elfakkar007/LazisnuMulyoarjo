@@ -3,7 +3,7 @@
 import { useState, Fragment } from "react";
 import { motion } from "framer-motion";
 import { Package, Filter } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { formatNumber, getMonthName, getDusunColor } from "@/lib/utils/helpers";
 
 interface KalengDistributionSectionProps {
@@ -109,14 +109,17 @@ export function KalengDistributionSection({ year, kalengData }: KalengDistributi
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <div>
           <h3 className="text-lg font-bold text-gray-900 mb-4">Distribusi per Dusun{selectedMonth ? ` - ${getMonthName(selectedMonth)}` : ' (Rata-rata)'}</h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={260}>
             <PieChart>
-              <Pie data={dusunTotals} cx="50%" cy="50%" outerRadius={100} dataKey="value" label={({ name, value }) => `${name}: ${formatNumber(value)}`}>
+              <Pie data={dusunTotals} cx="50%" cy="50%" outerRadius={90} dataKey="value">
                 {dusunTotals.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
+              <Legend
+                formatter={(value) => <span className="text-xs text-gray-700">{value}</span>}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -157,9 +160,9 @@ export function KalengDistributionSection({ year, kalengData }: KalengDistributi
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600"></th>
               {DUSUN.map((dusun) => (
                 <Fragment key={dusun}>
-                  <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 border-l border-gray-200">Distribusi</th>
-                  <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600">Terkumpul</th>
+                  <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 border-l border-gray-200">Terkumpul</th>
                   <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600">Belum</th>
+                  <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600">Distribusi</th>
                 </Fragment>
               ))}
             </tr>
@@ -170,9 +173,9 @@ export function KalengDistributionSection({ year, kalengData }: KalengDistributi
                 <td className="px-4 py-3 font-semibold text-gray-900">{getMonthName(month)}</td>
                 {data.map((d) => (
                   <Fragment key={d.dusun}>
-                    <td className="px-2 py-3 text-center text-gray-700 border-l border-gray-200">{formatNumber(d.distributed)}</td>
-                    <td className="px-2 py-3 text-center text-emerald-600 font-semibold">{formatNumber(d.collected)}</td>
+                    <td className="px-2 py-3 text-center text-emerald-600 font-semibold border-l border-gray-200">{formatNumber(d.collected)}</td>
                     <td className="px-2 py-3 text-center text-orange-600">{formatNumber(d.notCollected)}</td>
+                    <td className="px-2 py-3 text-center text-gray-700">{formatNumber(d.distributed)}</td>
                   </Fragment>
                 ))}
               </tr>
