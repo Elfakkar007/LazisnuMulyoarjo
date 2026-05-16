@@ -202,6 +202,169 @@ export async function deleteStructureMember(id: string) {
   return { success: true };
 }
 
+// Combined create/update for core members (single-step workflow)
+export async function upsertCoreMember(data: {
+  memberId?: string; // if editing existing member
+  position_name: string;
+  position_order: number;
+  tenure_period?: string | null;
+  name: string;
+  photo_url?: string | null;
+  member_order?: number | null;
+  bio?: string | null;
+  motto?: string | null;
+  social_links?: any;
+}) {
+  const supabase = await createClient();
+
+  try {
+    let positionId: string;
+
+    if (data.memberId) {
+      // Editing existing member - get existing position_id first
+      const { data: existingMember, error: memberError } = await supabase
+        .from('structure_members')
+        .select('position_id')
+        .eq('id', data.memberId)
+        .single();
+
+      if (memberError || !existingMember) {
+        return { success: false, message: 'Anggota tidak ditemukan' };
+      }
+
+      positionId = existingMember.position_id;
+
+      // Update the position name/order
+      const { error: posUpdateError } = await supabase
+        .from('structure_positions')
+        .update({
+          position_name: data.position_name,
+          position_order: data.position_order,
+          tenure_period: data.tenure_period || null,
+        })
+        .eq('id', positionId);
+
+      if (posUpdateError) {
+        console.error('Error updating position:', posUpdateError);
+        return { success: false, message: posUpdateError.message };
+      }
+
+      // Update the member
+      const { error: memUpdateError } = await supabase
+        .from('structure_members')
+        .update({
+          name: data.name,
+          photo_url: data.photo_url || null,
+          member_order: data.member_order ?? 0,
+          bio: data.bio || null,
+          motto: data.motto || null,
+          social_links: data.social_links || null,
+        })
+        .eq('id', data.memberId);
+
+      if (memUpdateError) {
+        console.error('Error updating member:', memUpdateError);
+        return { success: false, message: memUpdateError.message };
+      }
+    } else {
+      // Creating new member - create position first
+      const { data: newPosition, error: posError } = await supabase
+        .from('structure_positions')
+        .insert({
+          position_name: data.position_name,
+          position_order: data.position_order,
+          is_core: true,
+          tenure_period: data.tenure_period || null,
+        })
+        .select()
+        .single();
+
+      if (posError || !newPosition) {
+        console.error('Error creating position:', posError);
+        return { success: false, message: posError?.message || 'Gagal membuat jabatan' };
+      }
+
+      positionId = newPosition.id;
+
+      // Create the member
+      const { error: memError } = await supabase
+        .from('structure_members')
+        .insert({
+          position_id: positionId,
+          name: data.name,
+          photo_url: data.photo_url || null,
+          member_order: data.member_order ?? 0,
+          bio: data.bio || null,
+          motto: data.motto || null,
+          social_links: data.social_links || null,
+        });
+
+      if (memError) {
+        console.error('Error creating member:', memError);
+        // Rollback: delete the position we just created
+        await supabase.from('structure_positions').delete().eq('id', positionId);
+        return { success: false, message: memError.message };
+      }
+    }
+
+    revalidatePath('/admin/structure');
+    revalidatePath('/profil');
+    return { success: true };
+  } catch (err) {
+    console.error('Error in upsertCoreMember:', err);
+    return { success: false, message: 'Terjadi kesalahan tidak terduga' };
+  }
+}
+
+// Delete a core member and its associated position
+export async function deleteCoreMemberWithPosition(memberId: string) {
+  const supabase = await createClient();
+
+  try {
+    // Get the member's position_id first
+    const { data: member, error: memberError } = await supabase
+      .from('structure_members')
+      .select('position_id')
+      .eq('id', memberId)
+      .single();
+
+    if (memberError || !member) {
+      return { success: false, message: 'Anggota tidak ditemukan' };
+    }
+
+    // Check how many members are in this position
+    const { count } = await supabase
+      .from('structure_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('position_id', member.position_id);
+
+    // Delete the member
+    const { error: deleteError } = await supabase
+      .from('structure_members')
+      .delete()
+      .eq('id', memberId);
+
+    if (deleteError) {
+      return { success: false, message: deleteError.message };
+    }
+
+    // If this was the only member in the position, delete the position too
+    if (count && count <= 1) {
+      await supabase
+        .from('structure_positions')
+        .delete()
+        .eq('id', member.position_id);
+    }
+
+    revalidatePath('/admin/structure');
+    revalidatePath('/profil');
+    return { success: true };
+  } catch (err) {
+    console.error('Error in deleteCoreMemberWithPosition:', err);
+    return { success: false, message: 'Terjadi kesalahan tidak terduga' };
+  }
+}
+
 // =====================================================
 // FINANCIAL YEARS
 // =====================================================

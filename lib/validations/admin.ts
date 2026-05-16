@@ -33,6 +33,7 @@ export const structureMemberSchema = z.object({
   bio: z.string().nullable().optional(),
   motto: z.string().nullable().optional(),
   social_links: z.any().optional(),
+  position_role: z.string().nullable().optional(),
 });
 
 export const financialYearSchema = z.object({

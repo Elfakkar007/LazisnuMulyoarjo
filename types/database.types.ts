@@ -118,6 +118,7 @@ export interface Database {
           bio: string | null
           motto: string | null
           social_links: Json | null
+          position_role: string | null
           created_at: string
         }
         Insert: {
@@ -130,6 +131,7 @@ export interface Database {
           bio?: string | null
           motto?: string | null
           social_links?: Json | null
+          position_role?: string | null
           created_at?: string
         }
         Update: {
@@ -142,6 +144,7 @@ export interface Database {
           bio?: string | null
           motto?: string | null
           social_links?: Json | null
+          position_role?: string | null
           created_at?: string
         }
       }
